@@ -813,6 +813,9 @@ fi
 if ls magpie.${submissiontype}*run-pysparkwordcount* >& /dev/null ; then
     sed -i -e "s/FILENAMESEARCHREPLACEKEY/run-pysparkwordcount-FILENAMESEARCHREPLACEKEY/" magpie.${submissiontype}*run-pysparkwordcount*
 fi
+if ls magpie.${submissiontype}*spark-with-yarn* >& /dev/null ; then
+    sed -i -e "s/FILENAMESEARCHREPLACEKEY/usingyarn-FILENAMESEARCHREPLACEKEY/" magpie.${submissiontype}*spark-with-yarn*
+fi
 
 if ls magpie.${submissiontype}*hdfs-more-nodes* >& /dev/null ; then
     sed -i -e "s/FILENAMESEARCHREPLACEKEY/hdfs-more-nodes-FILENAMESEARCHREPLACEKEY/" magpie.${submissiontype}*hdfs-more-nodes*
@@ -820,6 +823,10 @@ fi
 
 if ls magpie.${submissiontype}*spark-with-rawnetworkfs* >& /dev/null ; then
     sed -i -e "s/FILENAMESEARCHREPLACEKEY/rawnetworkfs-FILENAMESEARCHREPLACEKEY/" magpie.${submissiontype}*spark-with-rawnetworkfs*
+fi
+
+if ls magpie.${submissiontype}*spark-with-yarn-and-rawnetworkfs* >& /dev/null ; then
+    sed -i -e "s/FILENAMESEARCHREPLACEKEY/rawnetworkfs-FILENAMESEARCHREPLACEKEY/" magpie.${submissiontype}*spark-with-yarn-and-rawnetworkfs*
 fi
 
 if ls magpie.${submissiontype}*run-kafkaperformance* >& /dev/null ; then
