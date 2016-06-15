@@ -57,6 +57,9 @@
 #SBATCH --exclusive
 #SBATCH --no-kill
 
+#SBATCH --mail-type=ALL      # notifications for job done & fail
+#SBATCH --mail-user=mpathira@indiana.edu # send-to address
+
 # Need to tell Magpie how you are submitting this job
 export MAGPIE_SUBMISSION_TYPE="sbatchsrun"
 
