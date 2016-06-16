@@ -42,7 +42,7 @@
 
 # Note defaults of MAGPIE_STARTUP_TIME & MAGPIE_SHUTDOWN_TIME, this
 # timelimit should be a fair amount larger than them combined.
-#SBATCH --time=60
+#SBATCH --time=80
 
 # Job name.  This will be used in naming directories for the job.
 #SBATCH --job-name=kafaka-test
@@ -166,8 +166,8 @@ export MAGPIE_JOB_TYPE="kafka"
 # minutes.  If MAGPIE_POST_JOB_RUN is specified below,
 # MAGPIE_SHUTDOWN_TIME must be at minimum 10 minutes.
 #
-# export MAGPIE_STARTUP_TIME=30
-# export MAGPIE_SHUTDOWN_TIME=30
+export MAGPIE_STARTUP_TIME=30
+export MAGPIE_SHUTDOWN_TIME=30
 
 # Convenience Scripts
 #
