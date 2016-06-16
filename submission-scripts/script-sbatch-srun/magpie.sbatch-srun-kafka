@@ -1607,7 +1607,7 @@ export KAFKA_SETUP=yes
 
 # Kafka Version
 #
-export KAFKA_VERSION="2.11-0.9.0.0"
+export KAFKA_VERSION="2.11-0.9.0.1"
 
 # Path to your Kafka build/binaries
 #
