@@ -136,7 +136,7 @@ export MAGPIE_LOCAL_DIR="/tmp/${USER}/magpie"
 #                 things.
 
 #
-export MAGPIE_JOB_TYPE="script"
+export MAGPIE_JOB_TYPE="kafka"
 
 # Specify script to execute for "script" mode in MAGPIE_JOB_TYPE
 #
