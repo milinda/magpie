@@ -242,7 +242,7 @@ export MAGPIE_SHUTDOWN_TIME=30
 # Specify options to the remote shell command if necessary.
 #
 # export MAGPIE_REMOTE_CMD="ssh"
-# export MAGPIE_REMOTE_CMD_OPTS=""
+export MAGPIE_REMOTE_CMD_OPTS=" -o StrictHostKeyChecking=no"
 
 ############################################################################
 # General Configuration
