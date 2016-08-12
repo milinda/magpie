@@ -57,14 +57,16 @@ Instructions For Using Kafka
 
 4) Select how your job will run by setting KAFKA_MODE.  The first
    time you'll probably want to run w/ 'performance' mode just to try
-   things out and make things look setup correctly.
+   things out and make sure things look setup correctly.
 
    After this, you may want to run with 'server' mode to play
    around and figure things out.  In the job output you will see
    output similar to the following:
 
       ssh node70
-      setenv KAFKA_CONF_DIR "/tmp/achu/kafka/ajobname/1081559/conf"
+      setenv JAVA_HOME "/usr/lib/jvm/jre-1.7.0-oracle.x86_64/"
+      setenv KAFKA_HOME "/home/username/kafka_2.11-0.9.0.0"
+      setenv KAFKA_CONF_DIR "/tmp/username/kafka/ajobtime/1174573/conf"
 
    These instructions will inform you how to login to the master node
    of your allocation and how to initialize your session.  Once in
@@ -107,18 +109,16 @@ KAFKA_CONF_DIR : the directory that Kafka configuration files local
 
 KAFKA_LOG_DIR : the directory Kafka log files are stored
 
-KAFKA_LOG4J_OPTS : options variable for logging
-
-LOG_DIR : the directory to store GC logging
+KAFKA_PORT : kafka port for client connections
 
 See "Zookeeper Exported Environment Variables" in README.zookeeper,
 for Zookeeper environment variables that may be useful.
 
 Kafka Patching
 ----------------
-- If MAGPIE_NO_LOCAL_DIR support is desired, patches in
-  patches/kafka/ with 'no-local-dir' in the filename can be found for
-  support.  See README.no-local-dir for more details.
+- If MAGPIE_NO_LOCAL_DIR support is desired, patches in patches/kafka/
+  with the "no-local-dir.patch" suffix in the filename can be found
+  for support.  See README.no-local-dir for more details.
 
 Kafka Testing
 ---------------

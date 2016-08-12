@@ -49,7 +49,7 @@ Instructions For Using Phoenix
 
    MAGPIE_LOCAL_DIR : For scratch space files
 
-   MAGPIE_JOB_TYPE : This should be set to 'pig'
+   MAGPIE_JOB_TYPE : This should be set to 'phoenix'
 
    JAVA_HOME : B/c you need to ...
 
@@ -66,14 +66,17 @@ Instructions For Using Phoenix
 
 4) Select how your job will run by setting PHOENIX_MODE.  The first
    time you'll probably want to run w/ 'performanceeval' mode just to try
-   things out and make things look setup correctly.
+   things out and make sure things look setup correctly.
 
    After this, you may want to run with 'interactive' mode to play
    around and figure things out.  In the job output you will see
    output similar to the following:
 
       ssh node70
-      setenv HBASE_CONF_DIR "/tmp/achu/hadoop/ajobname/1081559/conf"
+      setenv JAVA_HOME "/usr/lib/jvm/jre-1.7.0-oracle.x86_64/"
+      setenv PHOENIX_HOME "/home/username/phoenix-4.7.0-HBase-1.1-bin"
+      setenv PHOENIX_CONF_DIR "/tmp/achu/phoenix/ajobname/1081559/conf"
+      setenv HBASE_CONF_DIR "/tmp/achu/hbase/ajobname/1081559/conf"
 
    These instructions will inform you how to login to the master node
    of your allocation and how to initialize your session.  Once in
@@ -114,8 +117,6 @@ Phoenix Exported Environment Variables
 
 The following environment variables are exported when your job is run
 and may be useful in scripts in your run or in pre/post run scripts.
-
-PHOENIX_QUERYSERVER_OPTS : list of options for the phoenix queryserver
 
 PHOENIX_CONF_DIR : the directory that Phoenix configuration files local
                    to the node are stored

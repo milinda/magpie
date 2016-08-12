@@ -1,3 +1,128 @@
+magpie 1.76
+-----------
+Add older support for Phoenix 4.5.0-Hbase-1.0, 4.5.0-Hbase-1.1,
+  4.5.1-Hbase-1.0, 4.5.2-Hbase-1.0, 4.6.0-Hbase-1.0, 4.7.0-Hbase-1.0
+Add older support for Hbase 0.98.0-hadoop2 0.98.1-hadoop2
+  0.98.2-hadoop2 0.98.4-hadoop2 0.98.5-hadoop2 0.98.6-hadoop2
+  0.98.6.1-hadoop2 0.98.7-hadoop2 0.98.8-hadoop2 0.98.10-hadoop2
+  0.98.10.1-hadoop2 0.98.11-hadoop2 0.98.12-hadoop2 0.98.12.1-hadoop2
+  0.98.13-hadoop2 0.98.14-hadoop2 0.98.15-hadoop2 0.98.16-hadoop2
+  0.98.16.1-hadoop2 0.98.17-hadoop2 0.98.18-hadoop2 0.98.19-hadoop2
+  0.98.20-hadoop2
+
+magpie 1.75
+-----------
+Remove 'classifywikipedia' example with Mahout.
+Support Spark 2.0.0.
+Update default Spark to 2.0.0 w/ Hadoop 2.7. 
+Support new SPARK_YARN_STAGING_DIR option.
+Support Pig 0.16.0.
+Update default Pig to 0.16.0
+Support Hbase 1.2.2.
+Update default Hbase to 1.2.2
+Support Mahout 0.12.2.
+Update default Mahout to 0.12.2
+
+magpie 1.74
+-----------
+Major refactoring and code cleanup within Magpie.
+
+Years of adding features, adding projects, cutting & pasting,
+experiments, and patches have run its course for a set of "play
+scripts" that were originally only to support Hadoop 1.0.  A major
+refactoring & code cleanup was needed.
+
+Apologies to anyone anyone looking through the git log.  One tiny
+cleanup beget another one.  For all intents and purposes, you should
+consider the scripts to have stopped at tag 1.73 and started anew at
+tag 1.74.
+
+Highlights:
+
+- General code cleanup throughout: function-ize common code, split
+  functions into different lib files to remove dependencies, split up
+  large files into project specific ones, remove strange dependencies
+  in different files, rename files to make more sense, rename
+  variables to be consistent, rename functions to indicate "public" vs
+  "private" ones, add consistency to error messages, cleanup help
+  output, add "assert" checks in various locations with dependencies,
+  consistent file creation of masters & slaves files, do not export
+  variables that aren't required to be exported, fix a variety of
+  deprecated situations, fix outputs that go into
+  MAGPIE_ENVIRONMENT_VARIABLE_SCRIPT, fix inconsistencies on support
+  in various MODE options, move various files into subdirs to cleanup
+  number of files in a single dir.
+
+- Attempt to be consistent with use of Bash code style throughout.
+  e.g. using backticks instead of $() for subshells. 
+
+  In an attempt to avoid flame wars on style decisions, I simply
+  looked at what had been most commonly done thus far and used those
+  styles.
+
+- Support 'setuponly' option for PHOENIX_MODE.
+
+- Fix many minor corner cases
+
+- Add many additional corner case checks
+
+- Testsuite
+
+  - Add large suite of corner case tests & functionality tests
+
+- New exports
+
+  Export ZOOKEEPER_CLIENT_PORT for jobs.
+  Export KAFKA_PORT for jobs.
+
+- Potential compatibility issues with older job submission scripts:
+
+  Before, a number of variables were errantly exported.  Most notably
+  port numbers and such that should have only been used internally
+  within Magpie.  If by chance you used one of these environment
+  variables in scripts, you may need to adjust for it.
+
+  Hadoop terasort may no longer do the "right" thing under Hadoop 1.0.
+  Users should set HADOOP_TERAGEN_MAP_COUNT and
+  HADOOP_TERASORT_REDUCER_COUNT appropriately.
+
+  Remove scripts/job-scripts/zookeeper-ruok-script.sh script
+
+- Potential issues if you scripted against the Magpie code base
+
+  Rename start/stop scripts in bin/ for consistency to many big data
+  projects.
+
+  Files in conf/ are now stored in subdirectories.  So paths may have
+  changed.
+
+  Rename some conf files in conf/.
+
+  Rename a number of patches for consistency.
+
+magpie 1.73
+-----------
+Support "args" options to Magpie, Hadoop, Hbase, Spark, Storm script
+  options.
+Support Spark 1.6.2-bin-hadoop2.6.
+Update default Spark to 1.6.2-bin-hadoop2.6.
+Support Storm 0.10.1, 1.0.0, and 1.0.1.
+Update default Storm to 1.0.1.
+When users want to use alternate config files, instead of copying all
+  files from ${MAGPIE_SCRIPTS_HOME}/conf, into a project's alternate
+  CONF_FILES director (e.g. HADOOP_CONF_FILES), users can copy only the
+  files they wish to modify.
+Fix magpie-gather-config-files-and-logs-script.sh to gather Pig,
+  Zeppelin, Phoenix, and Kafka conf/log files.
+Support HADOOP_LOCALSTORE_CLEAR option.
+Support SPARK_LOCAL_SCRATCH_DIR_CLEAR option.
+Support multiple paths for SPARK_LOCAL_SCRATCH_DIR.
+Various minor bug fixes regarding Spark w/ Yarn use.
+
+magpie 1.72
+-----------
+Support SPARK_USE_YARN option for Spark to default to using Yarn.
+
 magpie 1.71
 -----------
 Adjust Yarn yarn.scheduler.maximum-allocation-mb to be same as yarn.nodemanager.resource.memory-mb. 

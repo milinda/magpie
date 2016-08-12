@@ -1,11 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 source test-generate-common.sh
+source test-common.sh
+source test-config.sh
 
-GenerateStormStandardTests_StandardWordCount() {
-    stormversion=$1
-    zookeeperversion=$2
-    javaversion=$3
+__GenerateStormStandardTests_StandardWordCount() {
+    local stormversion=$1
+    local zookeeperversion=$2
+    local javaversion=$3
 
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-storm magpie.${submissiontype}-storm-${stormversion}-zookeeper-${zookeeperversion}-zookeeper-not-shared-zookeeper-networkfs-run-stormwordcount
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-storm magpie.${submissiontype}-storm-${stormversion}-zookeeper-${zookeeperversion}-zookeeper-not-shared-zookeeper-local-run-stormwordcount
@@ -40,46 +42,34 @@ GenerateStormStandardTests() {
 
     echo "Making Storm Standard Tests"
 
-    for stormversion in 0.9.3 0.9.4
+    for testfunction in __GenerateStormStandardTests_StandardWordCount
     do
-	if [ "${zookeeper_3_4_6}" != "y" ]
-	then
-	    echo "Cannot generate Storm standard tests that depend on Zookeeper 3.4.6, it's not enabled"
-	    break
-	fi
-	for zookeeperversion in 3.4.6
-	do
-	    GenerateStormStandardTests_StandardWordCount ${stormversion} ${zookeeperversion} "1.6"
-	done
-    done
-
-    for stormversion in 0.9.5 0.9.6 0.10.0
-    do
-	if [ "${zookeeper_3_4_8}" != "y" ]
-	then
-	    echo "Cannot generate Storm standard tests that depend on Zookeeper 3.4.8, it's not enabled"
-	    break
-	fi
-	for zookeeperversion in 3.4.8
-	do
-	    GenerateStormStandardTests_StandardWordCount ${stormversion} ${zookeeperversion} "1.7"
-	done
+        for testgroup in ${storm_test_groups}
+        do
+            local zookeeperversion="${testgroup}_zookeeperversion"
+            local javaversion="${testgroup}_javaversion"
+            CheckForDependency "Storm" "Zookeeper" ${!zookeeperversion}
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!zookeeperversion} ${!javaversion}
+            done
+        done
     done
 }
 
-GenerateStormDependencyTests_Dependency1() {
-    stormversion=$1
-    zookeeperversion=$2
-    javaversion=$3
+__GenerateStormDependencyTests_Dependency1() {
+    local stormversion=$1
+    local zookeeperversion=$2
+    local javaversion=$3
 
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-storm magpie.${submissiontype}-storm-DependencyStorm1A-storm-${stormversion}-zookeeper-${zookeeperversion}-run-stormwordcount
     
     sed -i \
-	-e 's/export STORM_VERSION="\(.*\)"/export STORM_VERSION="'"${stormversion}"'"/' \
-	-e 's/export ZOOKEEPER_VERSION="\(.*\)"/export ZOOKEEPER_VERSION="'"${zookeeperversion}"'"/' \
-	-e 's/export ZOOKEEPER_DATA_DIR_TYPE="\(.*\)"/export ZOOKEEPER_DATA_DIR_TYPE="networkfs"/' \
-	-e 's/export ZOOKEEPER_DATA_DIR="\(.*\)"/export ZOOKEEPER_DATA_DIR="'"${zookeeperdatadirpathsubst}"'\/zookeeper\/DEPENDENCYPREFIX\/Storm1A\/'"${stormversion}"'\/"/' \
-	magpie.${submissiontype}-storm-DependencyStorm1A-storm-${stormversion}-zookeeper-${zookeeperversion}-run-stormwordcount
+        -e 's/export STORM_VERSION="\(.*\)"/export STORM_VERSION="'"${stormversion}"'"/' \
+        -e 's/export ZOOKEEPER_VERSION="\(.*\)"/export ZOOKEEPER_VERSION="'"${zookeeperversion}"'"/' \
+        -e 's/export ZOOKEEPER_DATA_DIR_TYPE="\(.*\)"/export ZOOKEEPER_DATA_DIR_TYPE="networkfs"/' \
+        -e 's/export ZOOKEEPER_DATA_DIR="\(.*\)"/export ZOOKEEPER_DATA_DIR="'"${zookeeperdatadirpathsubst}"'\/zookeeper\/DEPENDENCYPREFIX\/Storm1A\/'"${stormversion}"'\/"/' \
+        magpie.${submissiontype}-storm-DependencyStorm1A-storm-${stormversion}-zookeeper-${zookeeperversion}-run-stormwordcount
 
     JavaCommonSubstitution ${javaversion} `ls magpie.${submissiontype}-storm-DependencyStorm1A-storm-${stormversion}-zookeeper-${zookeeperversion}-run-stormwordcount`
 }
@@ -92,29 +82,32 @@ GenerateStormDependencyTests() {
 
 # Dependency 1 Tests, run after another
 
-    for stormversion in 0.9.3 0.9.4
+    for testfunction in __GenerateStormDependencyTests_Dependency1
     do
-	if [ "${zookeeper_3_4_6}" != "y" ]
-	then
-	    echo "Cannot generate Storm dependency tests that depend on Zookeeper 3.4.6, it's not enabled"
-	    break
-	fi
-	for zookeeperversion in 3.4.6
-	do
-	    GenerateStormDependencyTests_Dependency1 ${stormversion} ${zookeeperversion} "1.6"
-	done
-    done
-
-    for stormversion in 0.9.5 0.9.6 0.10.0
-    do
-	if [ "${zookeeper_3_4_8}" != "y" ]
-	then
-	    echo "Cannot generate Storm dependency tests that depend on Zookeeper 3.4.8, it's not enabled"
-	    break
-	fi
-	for zookeeperversion in 3.4.8
-	do
-	    GenerateStormDependencyTests_Dependency1 ${stormversion} ${zookeeperversion} "1.7"
-	done
+        for testgroup in ${storm_test_groups}
+        do
+            local zookeeperversion="${testgroup}_zookeeperversion"
+            local javaversion="${testgroup}_javaversion"
+            CheckForDependency "Storm" "Zookeeper" ${!zookeeperversion}
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!zookeeperversion} ${!javaversion}
+            done
+        done
     done
 }
+
+GenerateStormPostProcessing () {
+    files=`find . -maxdepth 1 -name "magpie.${submissiontype}*run-stormwordcount*"`
+    if [ -n "${files}" ]
+    then
+        sed -i -e "s/FILENAMESEARCHREPLACEKEY/run-stormwordcount-FILENAMESEARCHREPLACEKEY/" ${files}
+    fi
+
+    files=`find . -maxdepth 1 -name "magpie.${submissiontype}-storm*"`
+    if [ -n "${files}" ]
+    then
+        sed -i -e "s/<my node count>/${basenodeszookeepernodescount}/" ${files}
+    fi
+}
+

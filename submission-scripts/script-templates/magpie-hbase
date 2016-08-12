@@ -28,9 +28,14 @@ export HBASE_HOME="HBASEDIRPREFIX/hbase-${HBASE_VERSION}"
 #
 export HBASE_LOCAL_DIR="LOCALDIRPREFIX/hbase"
 
-# Directory where Hbase configuration templates are stored
+# Directory where alternate Hbase configuration templates are stored
 #
-# If not specified, assumed to be $MAGPIE_SCRIPTS_HOME/conf
+# If you wish to tweak the configuration files used by Magpie, set
+# HBASE_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/hbase into HBASE_CONF_FILES, and modify as
+# you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/hbase if of the files it needs are not
+# found in HBASE_CONF_FILES.
 #
 # export HBASE_CONF_FILES="${HOME}/myconf"
 
@@ -77,7 +82,7 @@ export HBASE_LOCAL_DIR="LOCALDIRPREFIX/hbase"
 #              like.
 #
 #              There are additional configuration options for this
-#              example listed below.
+#              listed below.
 #
 # "script" - execute a script that lists all of your Hbase jobs.  Be
 #            sure to set HBASE_SCRIPT_PATH to your script.
@@ -152,3 +157,11 @@ export HBASE_MODE="performanceeval"
 #
 # export HBASE_SCRIPT_PATH="${HOME}/my-job-script"
 
+# Specify arguments for script specified in HBASE_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables, such as
+# HBASE_MASTER_NODE, are not generated until the job has launched.
+# You won't be able to use them here.
+#
+# export HBASE_SCRIPT_ARGS="" 
+ 

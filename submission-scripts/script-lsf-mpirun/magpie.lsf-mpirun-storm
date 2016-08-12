@@ -103,13 +103,20 @@ export MAGPIE_LOCAL_DIR="/tmp/${USER}/magpie"
 #                 primarily used if you want to launch without
 #                 Hadoop/Hbase/Spark/etc. and are experimenting with
 #                 things.
-
 #
 export MAGPIE_JOB_TYPE="storm"
 
 # Specify script to execute for "script" mode in MAGPIE_JOB_TYPE
 #
 # export MAGPIE_SCRIPT_PATH="${HOME}/my-job-script"
+
+# Specify arguments for script specified in MAGPIE_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables are not
+# generated until the job has launched.  You won't be able to use them
+# here.
+#
+# export MAGPIE_SCRIPT_ARGS="" 
 
 # Specify script startup / shutdown time window
 #
@@ -157,11 +164,11 @@ export MAGPIE_JOB_TYPE="storm"
 # magpie-example-post-job-script for ideas of what you can do w/ these
 # scripts
 #
-# A number of convenient scripts are available in the scripts
-# directory.
+# A number of convenient scripts are available in the
+# ${MAGPIE_SCRIPTS_HOME}/scripts directory.
 #
-# export MAGPIE_PRE_JOB_RUN="${HOME}/magpie-my-pre-job-script"
-# export MAGPIE_POST_JOB_RUN="${HOME}/magpie-my-post-job-script"
+# export MAGPIE_PRE_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/pre-job-run-scripts/my-pre-job-script"
+# export MAGPIE_POST_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/post-job-run-scripts/my-post-job-script"
 
 # Environment Variable Script
 #
@@ -232,7 +239,7 @@ export STORM_SETUP=yes
 
 # Version
 #
-export STORM_VERSION="0.10.0"
+export STORM_VERSION="1.0.1"
 
 # Path to your Storm build/binaries
 #
@@ -250,9 +257,14 @@ export STORM_HOME="${HOME}/apache-storm-${STORM_VERSION}"
 #
 export STORM_LOCAL_DIR="/tmp/${USER}/storm"
 
-# Directory where Storm configuration templates are stored
+# Directory where alternate Storm configuration templates are stored
 #
-# If not specified, assumed to be $MAGPIE_SCRIPTS_HOME/conf
+# If you wish to tweak the configuration files used by Magpie, set
+# STORM_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/storm into STORM_CONF_FILES, and modify as
+# you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/storm if of the files it needs are not
+# found in STORM_CONF_FILES.
 #
 # export STORM_CONF_FILES="${HOME}/myconf"
 
@@ -324,6 +336,14 @@ export STORM_MODE="stormwordcount"
 #
 # export STORM_SCRIPT_PATH="${HOME}/my-job-script"
 
+# Specify arguments for script specified in STORM_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables, such as
+# STORM_MASTER_NODE, are not generated until the job has launched.
+# You won't be able to use them here.
+#
+# export STORM_SCRIPT_ARGS="" 
+
 ############################################################################
 # Zookeeper Configurations
 ############################################################################
@@ -378,9 +398,14 @@ export ZOOKEEPER_VERSION="3.4.8"
 #
 export ZOOKEEPER_HOME="${HOME}/zookeeper-${ZOOKEEPER_VERSION}"
 
-# Directory where Zookeeper configuration templates are stored
+# Directory where alternate Zookeeper configuration templates are stored
 #
-# If not specified, assumed to be $MAGPIE_SCRIPTS_HOME/conf
+# If you wish to tweak the configuration files used by Magpie, set
+# ZOOKEEPER_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/zookeeper into ZOOKEEPER_CONF_FILES, and
+# modify as you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/zookeeper if of the files it needs are not
+# found in ZOOKEEPER_CONF_FILES.
 #
 # export ZOOKEEPER_CONF_FILES="${HOME}/myconf"
 
@@ -474,7 +499,17 @@ if [ $? -ne 0 ]
 then
     exit 1
 fi
-mpirun $MPIRUN_OPTIONS $MAGPIE_SCRIPTS_HOME/magpie-setup
+mpirun $MPIRUN_OPTIONS $MAGPIE_SCRIPTS_HOME/magpie-setup-core
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+mpirun $MPIRUN_OPTIONS $MAGPIE_SCRIPTS_HOME/magpie-setup-projects
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+mpirun $MPIRUN_OPTIONS $MAGPIE_SCRIPTS_HOME/magpie-setup-post
 if [ $? -ne 0 ]
 then
     exit 1

@@ -1,8 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-SubmitStormStandardTests_StandardWordCount() {
-    stormversion=$1
-    zookeeperversion=$2
+source test-common.sh
+source test-config.sh
+
+__SubmitStormStandardTests_StandardWordCount() {
+    local stormversion=$1
+    local zookeeperversion=$2
 
     BasicJobSubmit magpie.${submissiontype}-storm-${stormversion}-zookeeper-${zookeeperversion}-zookeeper-not-shared-zookeeper-networkfs-run-stormwordcount
     BasicJobSubmit magpie.${submissiontype}-storm-${stormversion}-zookeeper-${zookeeperversion}-zookeeper-not-shared-zookeeper-local-run-stormwordcount
@@ -16,45 +19,37 @@ SubmitStormStandardTests_StandardWordCount() {
 }
 
 SubmitStormStandardTests() {
-    for stormversion in 0.9.3 0.9.4
+    for testfunction in __SubmitStormStandardTests_StandardWordCount
     do
-	for zookeeperversion in 3.4.6
-	do
-	    SubmitStormStandardTests_StandardWordCount ${stormversion} ${zookeeperversion}
-	done
-    done
-    
-    for stormversion in 0.9.5 0.9.6 0.10.0
-    do
-	for zookeeperversion in 3.4.8
-	do
-	    SubmitStormStandardTests_StandardWordCount ${stormversion} ${zookeeperversion}
-	done
+        for testgroup in ${storm_test_groups}
+        do
+            local zookeeperversion="${testgroup}_zookeeperversion"
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!zookeeperversion}
+            done
+        done
     done
 }
 
-SubmitStormDependencyTests_Dependency1() {
-    stormversion=$1
-    zookeeperversion=$2
+__SubmitStormDependencyTests_Dependency1() {
+    local stormversion=$1
+    local zookeeperversion=$2
 
     BasicJobSubmit magpie.${submissiontype}-storm-DependencyStorm1A-storm-${stormversion}-zookeeper-${zookeeperversion}-run-stormwordcount
     DependentJobSubmit magpie.${submissiontype}-storm-DependencyStorm1A-storm-${stormversion}-zookeeper-${zookeeperversion}-run-stormwordcount
 }
 
 SubmitStormDependencyTests() {
-    for stormversion in 0.9.3 0.9.4
+    for testfunction in __SubmitStormDependencyTests_Dependency1
     do
-	for zookeeperversion in 3.4.6
-	do
-	    SubmitStormDependencyTests_Dependency1 ${stormversion} ${zookeeperversion}
-	done
-    done
-
-    for stormversion in 0.9.5 0.9.6 0.10.0
-    do
-	for zookeeperversion in 3.4.8
-	do
-	    SubmitStormDependencyTests_Dependency1 ${stormversion} ${zookeeperversion}
-	done
+        for testgroup in ${storm_test_groups}
+        do
+            local zookeeperversion="${testgroup}_zookeeperversion"
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!zookeeperversion}
+            done
+        done
     done
 }

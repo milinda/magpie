@@ -60,15 +60,16 @@ Instructions For Running Hbase
 
 4) Select how your job will run by setting HBASE_MODE.  The first time
    you'll probably want to run w/ 'performanceeval' mode just to try
-   things out and make things look setup correctly.
+   things out and make sure things look setup correctly.
 
    After this, you may want to run with 'interactive' mode to play
    around and figure things out.  In the job output you will see
    output similar to the following:
 
       ssh node70
-      setenv HBASE_CONF_DIR "/tmp/username/hbase/ajobname/1081559/conf"
-      cd /home/username/hbase-0.98.9-hadoop2
+      setenv JAVA_HOME "/usr/lib/jvm/jre-1.7.0-oracle.x86_64/"
+      setenv HBASE_HOME "/home/username/hbase-1.2.1"
+      setenv HBASE_CONF_DIR "/tmp/username/hbase/ajobtime/1174573/conf"
 
    These instructions will inform you how to login to the master node
    of your allocation and how to initialize your session.  Once in
@@ -165,9 +166,9 @@ Hbase Patching
   The alternate remote execution command must be specified in the
   environment variable MAGPIE_REMOTE_CMD.
 
-- If MAGPIE_NO_LOCAL_DIR support is desired, patches in
-  patches/hbase/ with 'no-local-dir' in the filename can be found for
-  support.  See README.no-local-dir for more details.
+- If MAGPIE_NO_LOCAL_DIR support is desired, patches in patches/hbase/
+  with the "no-local-dir.patch" suffix in the filename can be found
+  for support.  See README.no-local-dir for more details.
 
 Hbase Testing
 -------------

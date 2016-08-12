@@ -1,3 +1,9 @@
+# Path for intellustre 
+#
+# This is used with HADOOP_FILESYSTEM_MODE="intellustre"
+#
+export HADOOP_INTELLUSTRE_PATH="LUSTREDIRPREFIX/intellustre/"
+
 # IntelLustre Block Size
 #
 # Commonly 134217728, 268435456, 536870912 (i.e. 128m, 256m, 512m)
@@ -24,4 +30,3 @@
 # jobs.  Specify yes or no.  Defaults to no.
 #
 # export HADOOP_INTELLUSTRE_SHUFFLE=no
-

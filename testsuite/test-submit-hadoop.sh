@@ -1,10 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
-SubmitHadoopStandardTests_StandardTerasort() {
-    hadoopversion=$1
+source test-common.sh
+source test-config.sh
+
+__SubmitHadoopStandardTests_StandardTerasort() {
+    local hadoopversion=$1
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsoverlustre-run-hadoopterasort
-    BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsondisk-run-hadoopterasort
+    BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsondisk-single-path-hadoopterasort
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsondisk-multiple-paths-run-hadoopterasort
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsovernetworkfs-run-hadoopterasort
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsoverlustre-localstore-single-path-run-hadoopterasort
@@ -13,7 +16,7 @@ SubmitHadoopStandardTests_StandardTerasort() {
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsovernetworkfs-localstore-multiple-paths-run-hadoopterasort
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsoverlustre-run-hadoopterasort-no-local-dir
-    BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsondisk-run-hadoopterasort-no-local-dir
+    BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsondisk-single-path-hadoopterasort-no-local-dir
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsondisk-multiple-paths-run-hadoopterasort-no-local-dir
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsovernetworkfs-run-hadoopterasort-no-local-dir
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-hdfsoverlustre-localstore-single-path-run-hadoopterasort-no-local-dir
@@ -23,19 +26,20 @@ SubmitHadoopStandardTests_StandardTerasort() {
 }
 
 SubmitHadoopStandardTests() {
-    for hadoopversion in 2.2.0 2.3.0 2.4.0 2.4.1 2.5.0 2.5.1 2.5.2 2.6.0 2.6.1 2.6.2 2.6.3 2.6.4
+    for testfunction in __SubmitHadoopStandardTests_StandardTerasort
     do
-	SubmitHadoopStandardTests_StandardTerasort ${hadoopversion}
-    done
-    
-    for hadoopversion in 2.7.0 2.7.1 2.7.2
-    do
-	SubmitHadoopStandardTests_StandardTerasort ${hadoopversion}
+        for testgroup in ${hadoop_test_groups}
+        do
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion}
+            done
+        done
     done
 }
 
-SubmitHadoopDependencyTests_Dependency1() {
-    hadoopversion=$1
+__SubmitHadoopDependencyTests_Dependency1() {
+    local hadoopversion=$1
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-DependencyHadoop1A-hadoop-${hadoopversion}-hdfsoverlustre-run-hadoopterasort
     DependentJobSubmit magpie.${submissiontype}-hadoop-DependencyHadoop1A-hadoop-${hadoopversion}-hdfsoverlustre-run-hadoopterasort
@@ -44,8 +48,8 @@ SubmitHadoopDependencyTests_Dependency1() {
     DependentJobSubmit magpie.${submissiontype}-hadoop-DependencyHadoop1A-hadoop-${hadoopversion}-hdfsovernetworkfs-run-hadoopterasort
 }
 
-SubmitHadoopDependencyTests_Dependency2() {
-    hadoopversion=$1
+__SubmitHadoopDependencyTests_Dependency2() {
+    local hadoopversion=$1
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop2A-hdfsoverlustre-run-hadoopterasort
     DependentJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop2A-hdfs-more-nodes-hdfsoverlustre-run-hadoopterasort
@@ -60,8 +64,8 @@ SubmitHadoopDependencyTests_Dependency2() {
     DependentJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop2A-hdfsovernetworkfs-run-hadoopterasort
 }
 
-SubmitHadoopDependencyTests_Dependency3() {
-    hadoopversion=$1
+__SubmitHadoopDependencyTests_Dependency3() {
+    local hadoopversion=$1
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop3A-hdfsoverlustre-run-scriptteragen
     DependentJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop3A-hdfsoverlustre-run-scriptterasort
@@ -78,8 +82,8 @@ SubmitHadoopDependencyTests_Dependency3() {
     DependentJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop3A-hdfsovernetworkfs-run-scriptterasort
 }
 
-SubmitHadoopDependencyTests_Dependency4() {
-    hadoopversion=$1
+__SubmitHadoopDependencyTests_Dependency4() {
+    local hadoopversion=$1
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop4A-hdfs-more-nodes-hdfsoverlustre-run-scriptteragen
     DependentJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop4A-hdfs-more-nodes-hdfsoverlustre-run-scriptterasort
@@ -92,10 +96,51 @@ SubmitHadoopDependencyTests_Dependency4() {
     DependentJobSubmit magpie.${submissiontype}-hadoop-${hadoopversion}-DependencyHadoop4A-hdfsovernetworkfs-run-scriptterasort
 }
 
-SubmitHadoopDependencyTests_DependencyDetectNewerHDFS() {
-    hadoopversionold=$1
-    hadoopversionnew=$2
-    dependencynumber=$3
+__SubmitHadoopDependencyTests_Dependency5 () {
+    local dependencynumber=$1
+    shift
+    local silentsuccess=$1
+    shift
+    local firstversion=$1
+    shift
+    local restofversions=$@
+    
+    BasicJobSubmit magpie.${submissiontype}-hadoop-${firstversion}-DependencyHadoop${dependencynumber}-hdfsoverlustre-run-hadoopterasort
+
+    for version in ${restofversions}
+    do
+        DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsoverlustre-hdfs-older-version-expected-failure
+        if [ "${silentsuccess}" == "y" ]
+        then
+            DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsoverlustre-run-hadoopupgradehdfs-silentsuccess
+        else
+            DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsoverlustre-run-hadoopupgradehdfs
+        fi
+        
+        DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsoverlustre-run-hadoopterasort
+    done
+    
+    BasicJobSubmit magpie.${submissiontype}-hadoop-${firstversion}-DependencyHadoop${dependencynumber}-hdfsovernetworkfs-run-hadoopterasort
+    
+    for version in ${restofversions}
+    do
+        DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsovernetworkfs-hdfs-older-version-expected-failure
+
+        if [ "${silentsuccess}" == "y" ]
+        then
+            DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsovernetworkfs-run-hadoopupgradehdfs-silentsuccess
+        else
+            DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsovernetworkfs-run-hadoopupgradehdfs
+        fi
+
+        DependentJobSubmit magpie.${submissiontype}-hadoop-${version}-DependencyHadoop${dependencynumber}-hdfsovernetworkfs-run-hadoopterasort
+    done
+}
+
+__SubmitHadoopDependencyTests_DependencyDetectNewerHDFS() {
+    local hadoopversionold=$1
+    local hadoopversionnew=$2
+    local dependencynumber=$3
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-${hadoopversionnew}-DependencyHadoop${dependencynumber}-hdfsoverlustre-run-hadoopterasort
     DependentJobSubmit magpie.${submissiontype}-hadoop-${hadoopversionold}-DependencyHadoop${dependencynumber}-hdfsoverlustre-hdfs-newer-version-expected-failure
@@ -105,55 +150,45 @@ SubmitHadoopDependencyTests_DependencyDetectNewerHDFS() {
 }
 
 SubmitHadoopDependencyTests() {
-    for hadoopversion in 2.2.0 2.3.0 2.4.0 2.4.1 2.5.0 2.5.1 2.5.2 2.6.0 2.6.1 2.6.2 2.6.3 2.6.4
+    for testfunction in __SubmitHadoopDependencyTests_Dependency1 __SubmitHadoopDependencyTests_Dependency2 __SubmitHadoopDependencyTests_Dependency3 __SubmitHadoopDependencyTests_Dependency4
     do
-	SubmitHadoopDependencyTests_Dependency1 ${hadoopversion}
+        for testgroup in ${hadoop_test_groups}
+        do
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion}
+            done
+        done
     done
 
-    for hadoopversion in 2.7.0 2.7.1 2.7.2
-    do
-	SubmitHadoopDependencyTests_Dependency1 ${hadoopversion}
-    done
+    __SubmitHadoopDependencyTests_Dependency5 "5A" "n" 2.4.0 2.5.0 2.6.0 2.7.0
+    __SubmitHadoopDependencyTests_Dependency5 "5B" "n" 2.4.0 2.5.0
+    __SubmitHadoopDependencyTests_Dependency5 "5C" "n" 2.5.0 2.6.0
+    __SubmitHadoopDependencyTests_Dependency5 "5D" "n" 2.6.0 2.7.0
+    __SubmitHadoopDependencyTests_Dependency5 "5E" "n" 2.4.0 2.6.0
+    __SubmitHadoopDependencyTests_Dependency5 "5F" "n" 2.4.0 2.7.0
+    __SubmitHadoopDependencyTests_Dependency5 "5G" "n" 2.5.0 2.7.0
+    __SubmitHadoopDependencyTests_Dependency5 "5H" "y" 2.4.0 2.4.1
+    __SubmitHadoopDependencyTests_Dependency5 "5I" "n" 2.5.0 2.5.1 2.5.2
+    __SubmitHadoopDependencyTests_Dependency5 "5J" "n" 2.6.0 2.6.1 2.6.2 2.6.3 2.6.4
+    __SubmitHadoopDependencyTests_Dependency5 "5K" "n" 2.7.0 2.7.1 2.7.2
 
-    for testfunction in SubmitHadoopDependencyTests_Dependency2 SubmitHadoopDependencyTests_Dependency3 SubmitHadoopDependencyTests_Dependency4
-    do
-	for hadoopversion in 2.3.0 2.4.0 2.4.1 2.5.0 2.5.1 2.5.2 2.6.0 2.6.1 2.6.2 2.6.3 2.6.4
-	do
-	    ${testfunction} ${hadoopversion}
-	done
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.2.0" "2.3.0" "6A"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.3.0" "2.4.0" "6B"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.4.0" "2.5.0" "6C"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.5.0" "2.6.0" "6D"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.6.0" "2.7.0" "6E"
+    
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.4.0" "2.4.1" "6F"
 
-	for hadoopversion in 2.7.0 2.7.1 2.7.2
-	do
-	    ${testfunction} ${hadoopversion}
-	done
-    done
-
-
-    BasicJobSubmit magpie.${submissiontype}-hadoop-2.4.0-DependencyHadoop5A-hdfsoverlustre-run-hadoopterasort
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.5.0-DependencyHadoop5A-hdfsoverlustre-hdfs-older-version-expected-failure
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.5.0-DependencyHadoop5A-hdfsoverlustre-run-hadoopupgradehdfs
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.5.0-DependencyHadoop5A-hdfsoverlustre-run-hadoopterasort
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.6.0-DependencyHadoop5A-hdfsoverlustre-hdfs-older-version-expected-failure
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.6.0-DependencyHadoop5A-hdfsoverlustre-run-hadoopupgradehdfs
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.6.0-DependencyHadoop5A-hdfsoverlustre-run-hadoopterasort
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.7.0-DependencyHadoop5A-hdfsoverlustre-hdfs-older-version-expected-failure
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.7.0-DependencyHadoop5A-hdfsoverlustre-run-hadoopupgradehdfs
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.7.0-DependencyHadoop5A-hdfsoverlustre-run-hadoopterasort
-
-    BasicJobSubmit magpie.${submissiontype}-hadoop-2.4.0-DependencyHadoop5A-hdfsovernetworkfs-run-hadoopterasort
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.5.0-DependencyHadoop5A-hdfsovernetworkfs-hdfs-older-version-expected-failure
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.5.0-DependencyHadoop5A-hdfsovernetworkfs-run-hadoopupgradehdfs
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.5.0-DependencyHadoop5A-hdfsovernetworkfs-run-hadoopterasort
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.6.0-DependencyHadoop5A-hdfsovernetworkfs-hdfs-older-version-expected-failure
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.6.0-DependencyHadoop5A-hdfsovernetworkfs-run-hadoopupgradehdfs
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.6.0-DependencyHadoop5A-hdfsovernetworkfs-run-hadoopterasort
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.7.0-DependencyHadoop5A-hdfsovernetworkfs-hdfs-older-version-expected-failure
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.7.0-DependencyHadoop5A-hdfsovernetworkfs-run-hadoopupgradehdfs
-    DependentJobSubmit magpie.${submissiontype}-hadoop-2.7.0-DependencyHadoop5A-hdfsovernetworkfs-run-hadoopterasort
-
-    SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.2.0" "2.3.0" "6A"
-    SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.3.0" "2.4.0" "7A"
-    SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.4.0" "2.5.0" "8A"
-    SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.5.0" "2.6.0" "9A"
-    SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.6.0" "2.7.0" "10A"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.5.0" "2.5.1" "6G"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.5.1" "2.5.2" "6H"
+    
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.6.0" "2.6.1" "6I"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.6.1" "2.6.2" "6J"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.6.2" "2.6.3" "6K"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.6.3" "2.6.4" "6L"
+    
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.7.0" "2.7.1" "6M"
+    __SubmitHadoopDependencyTests_DependencyDetectNewerHDFS "2.7.1" "2.7.2" "6N"
 }

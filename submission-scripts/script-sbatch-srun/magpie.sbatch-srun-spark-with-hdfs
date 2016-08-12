@@ -102,13 +102,20 @@ export MAGPIE_LOCAL_DIR="/tmp/${USER}/magpie"
 #                 primarily used if you want to launch without
 #                 Hadoop/Hbase/Spark/etc. and are experimenting with
 #                 things.
-
 #
 export MAGPIE_JOB_TYPE="spark"
 
 # Specify script to execute for "script" mode in MAGPIE_JOB_TYPE
 #
 # export MAGPIE_SCRIPT_PATH="${HOME}/my-job-script"
+
+# Specify arguments for script specified in MAGPIE_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables are not
+# generated until the job has launched.  You won't be able to use them
+# here.
+#
+# export MAGPIE_SCRIPT_ARGS="" 
 
 # Specify script startup / shutdown time window
 #
@@ -156,11 +163,11 @@ export MAGPIE_JOB_TYPE="spark"
 # magpie-example-post-job-script for ideas of what you can do w/ these
 # scripts
 #
-# A number of convenient scripts are available in the scripts
-# directory.
+# A number of convenient scripts are available in the
+# ${MAGPIE_SCRIPTS_HOME}/scripts directory.
 #
-# export MAGPIE_PRE_JOB_RUN="${HOME}/magpie-my-pre-job-script"
-# export MAGPIE_POST_JOB_RUN="${HOME}/magpie-my-post-job-script"
+# export MAGPIE_PRE_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/pre-job-run-scripts/my-pre-job-script"
+# export MAGPIE_POST_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/post-job-run-scripts/my-post-job-script"
 
 # Environment Variable Script
 #
@@ -257,7 +264,7 @@ export HADOOP_SETUP_TYPE="HDFS2"
 # Make sure the version for Mapreduce version 1 or 2 matches whatever
 # you set in HADOOP_SETUP_TYPE
 #
-export HADOOP_VERSION="2.6.4"
+export HADOOP_VERSION="2.7.2"
 
 # Path to your Hadoop build/binaries
 #
@@ -279,9 +286,14 @@ export HADOOP_HOME="${HOME}/hadoop-${HADOOP_VERSION}"
 #
 export HADOOP_LOCAL_DIR="/tmp/${USER}/hadoop"
 
-# Directory where Hadoop configuration templates are stored
+# Directory where alternate Hadoop configuration templates are stored
 #
-# If not specified, assumed to be $MAGPIE_SCRIPTS_HOME/conf
+# If you wish to tweak the configuration files used by Magpie, set
+# HADOOP_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/hadoop into HADOOP_CONF_FILES, and modify
+# as you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/hadoop if of the files it needs are not
+# found in HADOOP_CONF_FILES.
 #
 # export HADOOP_CONF_FILES="${HOME}/myconf"
 
@@ -314,11 +326,11 @@ export HADOOP_LOCAL_DIR="/tmp/${USER}/hadoop"
 #
 # Specify extra environment information that should be passed into
 # Hadoop.  This file will simply be appended into the hadoop-env.sh
-# (and if appropriate) yarn-env.sh.
+# and (if appropriate) yarn-env.sh.
 #
 # By default, a reasonable estimate for max user processes and open
-# file descriptors will be calculated and put into hadoop-env.sh (and
-# if appropriate) yarn-env.sh.  However, it's always possible they may
+# file descriptors will be calculated and put into hadoop-env.sh and
+# (if appropriate) yarn-env.sh.  However, it's always possible they may
 # need to be set differently. Everyone's cluster/situation can be
 # slightly different.
 #
@@ -337,7 +349,7 @@ export HADOOP_LOCAL_DIR="/tmp/${USER}/hadoop"
 #              the way you like.
 #
 #              There are additional configuration options for this
-#              example listed below.
+#              listed below.
 #
 # "script" - execute a script that lists all of your Hadoop jobs.  Be
 #            sure to set HADOOP_SCRIPT_PATH to your script.
@@ -395,7 +407,7 @@ export HADOOP_MODE="hdfsonly"
 #
 # "hdfs" - Normal straight up HDFS if you have local disk in your
 #          cluster.  This option is primarily for benchmarking and
-#          probably shouldn't be used in the general case.
+#          caching, but probably shouldn't be used in the general case.
 #
 #          Be careful running this in a cluster environment.  The next
 #          time you execute your job, if a different set of nodes are
@@ -423,7 +435,22 @@ export HADOOP_MODE="hdfsonly"
 #
 export HADOOP_FILESYSTEM_MODE="hdfsoverlustre"
 
+# HDFS Replication
+#
+# This is used with HADOOP_FILESYSTEM_MODE="hdfs", "hdfsoverlustre",
+# and "hdfsovernetworkfs"
+#
+# HDFS commonly uses 3.  When doing HDFS over Lustre/NetworkFS, higher
+# replication can also help with resilience if nodes fail.  You may
+# wish to set this to < 3 to save space.
+#
+# If not specified, defaults to 3
+#
+# export HADOOP_HDFS_REPLICATION=3
+
 # Path for HDFS when using local disk
+#
+# This is used with HADOOP_FILESYSTEM_MODE="hdfs"
 #
 # If you want to specify multiple paths (such as multiple drives),
 # make them comma separated (e.g. /dir1,/dir2,/dir3).  The multiple
@@ -436,15 +463,26 @@ export HADOOP_HDFS_PATH="/ssd/${USER}/hdfs"
 # HDFS cleanup
 #
 # After your job has completed, if HADOOP_HDFS_PATH_CLEAR is set to
-# yes, Magpie will do a rm -rf on HADOOP_HDFS_PATH.  This may be
-# convenient for cleaning up your job after it has run.  This is
-# particularly useful for HDFS, b/c on your next job run, you may not
-# be able to get the nodes you want on your next run, leading to
-# problems.
+# yes, Magpie will do a rm -rf on HADOOP_HDFS_PATH.  
+#
+# This is particularly useful when doing normal HDFS on local storage.
+# On your next job run, you may not be able to get the nodes you want
+# on your next run.  So you may want to clean up your work before the
+# next user uses the node.
 #
 # export HADOOP_HDFS_PATH_CLEAR="yes"
 
+# HDFS Block Size
+#
+# Commonly 134217728, 268435456, 536870912 (i.e. 128m, 256m, 512m)
+#
+# If not specified, defaults to 134217728
+#
+# export HADOOP_HDFS_BLOCKSIZE=134217728
+
 # Lustre path to do Hadoop HDFS out of
+#
+# This is used with HADOOP_FILESYSTEM_MODE="hdfsoverlustre"
 #
 # Note that different versions of Hadoop may not be compatible with
 # your current HDFS data.  If you're going to switch around to
@@ -474,6 +512,8 @@ export HADOOP_HDFSOVERLUSTRE_PATH="/lustre/${USER}/hdfsoverlustre/"
 
 # Networkfs path to do Hadoop HDFS out of
 #
+# This is used with HADOOP_FILESYSTEM_MODE="hdfsovernetworkfs"
+#
 # Note that different versions of Hadoop may not be compatible with
 # your current HDFS data.  If you're going to switch around to
 # different versions, perhaps set different paths for different data.
@@ -502,9 +542,17 @@ export HADOOP_HDFSOVERNETWORKFS_PATH="/networkfs/${USER}/hdfsovernetworkfs/"
 
 # Path for rawnetworkfs
 #
-# This path is used for creating local per-node paths.
+# This is used with HADOOP_FILESYSTEM_MODE="rawnetworkfs"
 #
 export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
+
+# RawNetworkFS Block Size
+#
+# Commonly 33554432, 67108864, 134217728 (i.e. 32m, 64m, 128m)
+#
+# If not specified, defaults to 33554432
+#
+# export HADOOP_RAWNETWORKFS_BLOCKSIZE=33554432
 
 # If you have a local SSD or NVRAM, performance may be better to store
 # intermediate data on it rather than Lustre or some other networked
@@ -522,6 +570,16 @@ export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
 #
 # export HADOOP_LOCALSTORE="/ssd/${USER}/localstore/"
 
+# HADOOP_LOCALSTORE_CLEAR 
+#
+# After your job has completed, if HADOOP_LOCALSTORE_CLEAR is set to
+# yes, Magpie will do a rm -rf on all directories in
+# HADOOP_LOCALSTORE.  This is particularly useful if the localstore
+# directory is on local storage and you want to clean up your work
+# before the next user uses the node.
+#
+# export HADOOP_LOCALSTORE_CLEAR="yes"
+
 # Option to use unique locations per job to store hdfs data
 #
 # If this is set to yes the nodes will append the job id to the
@@ -535,33 +593,6 @@ export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
 #
 # export HADOOP_PER_JOB_HDFS_PATH="yes"
 
-# HDFS Block Size
-#
-# Commonly 134217728, 268435456, 536870912 (i.e. 128m, 256m, 512m)
-#
-# If not specified, defaults to 134217728
-#
-# export HADOOP_HDFS_BLOCKSIZE=134217728
-
-# HDFS Replication
-#
-# HDFS commonly uses 3.  When doing HDFS over Lustre/NetworkFS, higher
-# replication can also help with resilience if nodes fail.  You may
-# wish to set this to < 3 to save space.
-#
-# If not specified, defaults to 3
-#
-# export HADOOP_HDFS_REPLICATION=3
-
-# RawNetworkFS Block Size
-#
-# Commonly 33554432, 67108864, 134217728 (i.e. 32m, 64m, 128m)
-#
-# If not specified, defaults to 33554432
-#
-# export HADOOP_RAWNETWORKFS_BLOCKSIZE=33554432
-
-
 ############################################################################
 # Hadoop Script Configurations
 ############################################################################
@@ -572,6 +603,14 @@ export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
 # the script.
 #
 # export HADOOP_SCRIPT_PATH="${HOME}/my-job-script"
+
+# Specify arguments for script specified in HADOOP_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables, such as
+# HADOOP_MASTER_NODE, are not generated until the job has launched.
+# You won't be able to use them here.
+#
+# export HADOOP_SCRIPT_ARGS="" 
 
 ############################################################################
 # Hadoop Decommission HDFS Nodes Configurations
@@ -597,7 +636,7 @@ export SPARK_SETUP=yes
 
 # Version
 #
-export SPARK_VERSION="1.6.1-bin-hadoop2.6"
+export SPARK_VERSION="2.0.0-bin-hadoop2.7"
 
 # Path to your Spark build/binaries
 #
@@ -615,9 +654,14 @@ export SPARK_HOME="${HOME}/spark-${SPARK_VERSION}"
 #
 export SPARK_LOCAL_DIR="/tmp/${USER}/spark"
 
-# Directory where Spark configuration templates are stored
+# Directory where alternate Spark configuration templates are stored
 #
-# If not specified, assumed to be $MAGPIE_SCRIPTS_HOME/conf
+# If you wish to tweak the configuration files used by Magpie, set
+# SPARK_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/spark into SPARK_CONF_FILES, and modify as
+# you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/spark if of the files it needs are not
+# found in SPARK_CONF_FILES.
 #
 # export SPARK_CONF_FILES="${HOME}/myconf"
 
@@ -626,8 +670,8 @@ export SPARK_LOCAL_DIR="/tmp/${USER}/spark"
 # If not specified, a reasonable estimate will be calculated based on
 # number of CPUs on the system.
 #
-# If also running Hbase or Hadoop MapReduce, be aware of the number of
-# tasks and the amount of memory that may be needed by other software.
+# Be aware of the number of tasks and the amount of memory that may be
+# needed by other software.
 #
 # export SPARK_WORKER_CORES_PER_NODE=8
 
@@ -637,8 +681,8 @@ export SPARK_LOCAL_DIR="/tmp/${USER}/spark"
 # calculated based on total memory available and number of CPUs on the
 # system.
 #
-# If also running Hbase or Hadoop MapReduce, be aware of the number of
-# tasks and the amount of memory that may be needed by other software.
+# Be aware of the number of tasks and the amount of memory that may be
+# needed by other software.
 #
 # export SPARK_WORKER_MEMORY_PER_NODE=16000
 
@@ -870,9 +914,71 @@ export SPARK_MODE="sparkpi"
 # If you have local SSDs or NVRAM stored on the nodes of your system,
 # it may be in your interest to set this to a local drive.  It can
 # improve performance of both shuffling and disk based RDD
-# persistence.
+# persistence.  If you want to specify multiple paths (such as
+# multiple drives), make them comma separated
+# (e.g. /dir1,/dir2,/dir3).
+#
+# Note that this field will not work if SPARK_USE_YARN is set to
+# 'yes'.  Please set HADOOP_LOCALSTORE to inform Yarn to set a local
+# SSD for Yarn to use for local scratch.
 #
 # export SPARK_LOCAL_SCRATCH_DIR="/lustre/${USER}/sparkscratch/"
+
+# SPARK_LOCAL_SCRATCH_DIR_CLEAR 
+#
+# After your job has completed, if SPARK_LOCAL_SCRATCH_DIR_CLEAR is
+# set to yes, Magpie will do a rm -rf on all directories in
+# SPARK_LOCAL_SCRATCH_DIR.  This is particularly useful if the local
+# scratch directory is on local storage and you want to clean up your
+# work before the next user uses the node.
+#
+# export SPARK_LOCAL_SCRATCH_DIR_CLEAR="yes"
+
+# SPARK_USE_YARN
+#
+# By default, Magpie uses the Spark standalone scheduler.  As
+# resources do not need to be competed for in a Magpie environment
+# (you the user have all the resources allocated via the
+# scheduler/resource manager of your cluster), the Spark scheduler is
+# more appropriate for use under Magpie.
+#
+# However, users who may have scripted/coded against Yarn before may
+# find porting into Magpie easier if Yarn was defaulted to instead of
+# the standalone scheduler.  If SPARK_USE_YARN is set to 'yes' below,
+# the following differences will happen within Magpie.
+#
+# - The Spark standalone scheduler will not be launched 
+# - The default Spark master will be set to 'yarn-client' in all
+#   appropriate locations (e.g. spark-defaults.conf)
+# - All situations that would otherwise use the standalone scheduler
+#   (e.g. SPARK_MODE="sparkpi" or SPARK_MODE="script") will now use
+#   Yarn instead.
+# 
+# Note that SPARK_LOCAL_SCRATCH_DIR above will not work if
+# SPARK_USE_YARN is set to 'yes'.  Please set HADOOP_LOCALSTORE to
+# inform Yarn to set a local SSD for Yarn to use for local scratch.
+#
+# Make sure that HADOOP_SETUP_TYPE is set to MR2 so Yarn will be
+# launched if you set SPARK_USE_YARN to yes.
+#
+# Defaults to no.
+#
+# export SPARK_USE_YARN=yes
+
+# SPARK_YARN_STAGING_DIR
+#
+# By default, Spark w/ Yarn will use your home directory for staging
+# files for a job.  This home directory must be accessible by all
+# nodes.
+#
+# This may pose a problem if you are not using HDFS and your home
+# directory is not NFS or network mounted.  Set this value to a
+# network location as your staging directory.  Be sure to prefix this
+# path the appropriate scheme, such as file://.
+# 
+# This option is only available beginning in Spark 2.0.
+#
+# export SPARK_YARN_STAGING_DIR="file:///lustre/${USER}/sparkStaging/"
 
 ############################################################################
 # Spark SparkPi Configuration
@@ -927,6 +1033,14 @@ export SPARK_MODE="sparkpi"
 #
 # export SPARK_SCRIPT_PATH="${HOME}/my-job-script"
 
+# Specify arguments for script specified in SPARK_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables, such as
+# SPARK_MASTER_NODE, are not generated until the job has launched.
+# You won't be able to use them here.
+#
+# export SPARK_SCRIPT_ARGS="" 
+
 ############################################################################
 # Run Job
 ############################################################################
@@ -936,7 +1050,17 @@ if [ $? -ne 0 ]
 then
     exit 1
 fi
-srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-core
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-projects
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-post
 if [ $? -ne 0 ]
 then
     exit 1

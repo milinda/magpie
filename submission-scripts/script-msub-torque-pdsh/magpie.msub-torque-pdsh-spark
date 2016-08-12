@@ -103,13 +103,20 @@ export MAGPIE_LOCAL_DIR="/tmp/${USER}/magpie"
 #                 primarily used if you want to launch without
 #                 Hadoop/Hbase/Spark/etc. and are experimenting with
 #                 things.
-
 #
 export MAGPIE_JOB_TYPE="spark"
 
 # Specify script to execute for "script" mode in MAGPIE_JOB_TYPE
 #
 # export MAGPIE_SCRIPT_PATH="${HOME}/my-job-script"
+
+# Specify arguments for script specified in MAGPIE_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables are not
+# generated until the job has launched.  You won't be able to use them
+# here.
+#
+# export MAGPIE_SCRIPT_ARGS="" 
 
 # Specify script startup / shutdown time window
 #
@@ -157,11 +164,11 @@ export MAGPIE_JOB_TYPE="spark"
 # magpie-example-post-job-script for ideas of what you can do w/ these
 # scripts
 #
-# A number of convenient scripts are available in the scripts
-# directory.
+# A number of convenient scripts are available in the
+# ${MAGPIE_SCRIPTS_HOME}/scripts directory.
 #
-# export MAGPIE_PRE_JOB_RUN="${HOME}/magpie-my-pre-job-script"
-# export MAGPIE_POST_JOB_RUN="${HOME}/magpie-my-post-job-script"
+# export MAGPIE_PRE_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/pre-job-run-scripts/my-pre-job-script"
+# export MAGPIE_POST_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/post-job-run-scripts/my-post-job-script"
 
 # Environment Variable Script
 #
@@ -236,7 +243,7 @@ export SPARK_SETUP=yes
 
 # Version
 #
-export SPARK_VERSION="1.6.1-bin-hadoop2.6"
+export SPARK_VERSION="2.0.0-bin-hadoop2.7"
 
 # Path to your Spark build/binaries
 #
@@ -254,9 +261,14 @@ export SPARK_HOME="${HOME}/spark-${SPARK_VERSION}"
 #
 export SPARK_LOCAL_DIR="/tmp/${USER}/spark"
 
-# Directory where Spark configuration templates are stored
+# Directory where alternate Spark configuration templates are stored
 #
-# If not specified, assumed to be $MAGPIE_SCRIPTS_HOME/conf
+# If you wish to tweak the configuration files used by Magpie, set
+# SPARK_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/spark into SPARK_CONF_FILES, and modify as
+# you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/spark if of the files it needs are not
+# found in SPARK_CONF_FILES.
 #
 # export SPARK_CONF_FILES="${HOME}/myconf"
 
@@ -265,8 +277,8 @@ export SPARK_LOCAL_DIR="/tmp/${USER}/spark"
 # If not specified, a reasonable estimate will be calculated based on
 # number of CPUs on the system.
 #
-# If also running Hbase or Hadoop MapReduce, be aware of the number of
-# tasks and the amount of memory that may be needed by other software.
+# Be aware of the number of tasks and the amount of memory that may be
+# needed by other software.
 #
 # export SPARK_WORKER_CORES_PER_NODE=8
 
@@ -276,8 +288,8 @@ export SPARK_LOCAL_DIR="/tmp/${USER}/spark"
 # calculated based on total memory available and number of CPUs on the
 # system.
 #
-# If also running Hbase or Hadoop MapReduce, be aware of the number of
-# tasks and the amount of memory that may be needed by other software.
+# Be aware of the number of tasks and the amount of memory that may be
+# needed by other software.
 #
 # export SPARK_WORKER_MEMORY_PER_NODE=16000
 
@@ -509,9 +521,71 @@ export SPARK_MODE="sparkpi"
 # If you have local SSDs or NVRAM stored on the nodes of your system,
 # it may be in your interest to set this to a local drive.  It can
 # improve performance of both shuffling and disk based RDD
-# persistence.
+# persistence.  If you want to specify multiple paths (such as
+# multiple drives), make them comma separated
+# (e.g. /dir1,/dir2,/dir3).
+#
+# Note that this field will not work if SPARK_USE_YARN is set to
+# 'yes'.  Please set HADOOP_LOCALSTORE to inform Yarn to set a local
+# SSD for Yarn to use for local scratch.
 #
 export SPARK_LOCAL_SCRATCH_DIR="/lustre/${USER}/sparkscratch/"
+
+# SPARK_LOCAL_SCRATCH_DIR_CLEAR 
+#
+# After your job has completed, if SPARK_LOCAL_SCRATCH_DIR_CLEAR is
+# set to yes, Magpie will do a rm -rf on all directories in
+# SPARK_LOCAL_SCRATCH_DIR.  This is particularly useful if the local
+# scratch directory is on local storage and you want to clean up your
+# work before the next user uses the node.
+#
+# export SPARK_LOCAL_SCRATCH_DIR_CLEAR="yes"
+
+# SPARK_USE_YARN
+#
+# By default, Magpie uses the Spark standalone scheduler.  As
+# resources do not need to be competed for in a Magpie environment
+# (you the user have all the resources allocated via the
+# scheduler/resource manager of your cluster), the Spark scheduler is
+# more appropriate for use under Magpie.
+#
+# However, users who may have scripted/coded against Yarn before may
+# find porting into Magpie easier if Yarn was defaulted to instead of
+# the standalone scheduler.  If SPARK_USE_YARN is set to 'yes' below,
+# the following differences will happen within Magpie.
+#
+# - The Spark standalone scheduler will not be launched 
+# - The default Spark master will be set to 'yarn-client' in all
+#   appropriate locations (e.g. spark-defaults.conf)
+# - All situations that would otherwise use the standalone scheduler
+#   (e.g. SPARK_MODE="sparkpi" or SPARK_MODE="script") will now use
+#   Yarn instead.
+# 
+# Note that SPARK_LOCAL_SCRATCH_DIR above will not work if
+# SPARK_USE_YARN is set to 'yes'.  Please set HADOOP_LOCALSTORE to
+# inform Yarn to set a local SSD for Yarn to use for local scratch.
+#
+# Make sure that HADOOP_SETUP_TYPE is set to MR2 so Yarn will be
+# launched if you set SPARK_USE_YARN to yes.
+#
+# Defaults to no.
+#
+# export SPARK_USE_YARN=yes
+
+# SPARK_YARN_STAGING_DIR
+#
+# By default, Spark w/ Yarn will use your home directory for staging
+# files for a job.  This home directory must be accessible by all
+# nodes.
+#
+# This may pose a problem if you are not using HDFS and your home
+# directory is not NFS or network mounted.  Set this value to a
+# network location as your staging directory.  Be sure to prefix this
+# path the appropriate scheme, such as file://.
+# 
+# This option is only available beginning in Spark 2.0.
+#
+# export SPARK_YARN_STAGING_DIR="file:///lustre/${USER}/sparkStaging/"
 
 ############################################################################
 # Spark SparkPi Configuration
@@ -566,16 +640,26 @@ export SPARK_LOCAL_SCRATCH_DIR="/lustre/${USER}/sparkscratch/"
 #
 # export SPARK_SCRIPT_PATH="${HOME}/my-job-script"
 
+# Specify arguments for script specified in SPARK_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables, such as
+# SPARK_MASTER_NODE, are not generated until the job has launched.
+# You won't be able to use them here.
+#
+# export SPARK_SCRIPT_ARGS="" 
+
 ############################################################################
 # Run Job
 ############################################################################
 
-ENV=$(env | grep -E '^MAGPIE|^HADOOP|^PIG|^ZOOKEEPER|^HBASE|^SPARK|^STORM|^TACHYON|^JAVA|^LD_LIBRARY_PATH|^MOAB|^PATH|^PBS|RAMDISK'\
+ENV=$(env | grep -E '^MAGPIE|^HADOOP|^PIG|^ZOOKEEPER|^KAFKA|^ZEPPELIN|^PHOENIX|^HBASE|^SPARK|^STORM|^TACHYON|^JAVA|^LD_LIBRARY_PATH|^MOAB|^PATH|^PBS|RAMDISK'\
           | sed 's/^/export /;s/=/="/;s/$/"/')
 
 pdsh "$ENV;
       $MAGPIE_SCRIPTS_HOME/magpie-check-inputs &&
-      $MAGPIE_SCRIPTS_HOME/magpie-setup &&
+      $MAGPIE_SCRIPTS_HOME/magpie-setup-core &&
+      $MAGPIE_SCRIPTS_HOME/magpie-setup-projects &&
+      $MAGPIE_SCRIPTS_HOME/magpie-setup-post &&
       $MAGPIE_SCRIPTS_HOME/magpie-pre-run &&
       $MAGPIE_SCRIPTS_HOME/magpie-run &&
       $MAGPIE_SCRIPTS_HOME/magpie-cleanup &&

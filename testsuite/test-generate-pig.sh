@@ -1,11 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 source test-generate-common.sh
+source test-common.sh
+source test-config.sh
 
-GeneratePigStandardTests_Common() {
-    pigversion=$1
-    hadoopversion=$2
-    javaversion=$3
+__GeneratePigStandardTests_Common() {
+    local pigversion=$1
+    local hadoopversion=$2
+    local javaversion=$3
 
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-hadoop-and-pig magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}-run-testpig
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-hadoop-and-pig magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}-run-pigscript
@@ -18,7 +20,7 @@ GeneratePigStandardTests_Common() {
     
     sed -i -e 's/export MAGPIE_JOB_TYPE="\(.*\)"/export MAGPIE_JOB_TYPE="script"/' magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}*run-pigscript*
     
-    sed -i -e 's/# export MAGPIE_SCRIPT_PATH="\(.*\)"/export MAGPIE_SCRIPT_PATH="'"${magpiescriptshomesubst}"'\/testsuite\/test-pig.sh"/' magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}*run-pigscript*
+    sed -i -e 's/# export MAGPIE_SCRIPT_PATH="\(.*\)"/export MAGPIE_SCRIPT_PATH="'"${magpiescriptshomesubst}"'\/testsuite\/testscripts\/test-pig.sh"/' magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}*run-pigscript*
 
     JavaCommonSubstitution ${javaversion} `ls magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}*`
 }
@@ -29,50 +31,25 @@ GeneratePigStandardTests() {
 
     echo "Making Pig Standard Tests"
 
-    for pigversion in 0.12.0 0.12.1
+    for testfunction in __GeneratePigStandardTests_Common
     do
-	if [ "${hadoop_2_4_0}" != "y" ]
-	then
-	    echo "Cannot generate Pig standard tests that depend on Hadoop 2.4.0, it's not enabled"
-	    break
-	fi
-	for hadoopversion in 2.4.0
-	do
-	    GeneratePigStandardTests_Common ${pigversion} ${hadoopversion} "1.6"
-	done
-    done
-
-    for pigversion in 0.13.0 0.14.0
-    do
-	if [ "${hadoop_2_6_0}" != "y" ]
-	then
-	    echo "Cannot generate Pig standard tests that depend on Hadoop 2.6.0, it's not enabled"
-	    break
-	fi
-	for hadoopversion in 2.6.0
-	do
-	    GeneratePigStandardTests_Common ${pigversion} ${hadoopversion} "1.6"
-	done
-    done
-
-    for pigversion in 0.15.0
-    do
-	if [ "${hadoop_2_7_0}" != "y" ]
-	then
-	    echo "Cannot generate Pig standard tests that depend on Hadoop 2.7.0, it's not enabled"
-	    break
-	fi
-	for hadoopversion in 2.7.0
-	do
-	    GeneratePigStandardTests_Common ${pigversion} ${hadoopversion} "1.7"
-	done
+        for testgroup in ${pig_test_groups}
+        do
+            local hadoopversion="${testgroup}_hadoopversion"
+            local javaversion="${testgroup}_javaversion"
+            CheckForDependency "Pig" "Hadoop" ${!hadoopversion}
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!hadoopversion} ${!javaversion}
+            done
+        done
     done
 }
 
-GeneratePigDependencyTests_Dependency1() {
-    pigversion=$1
-    hadoopversion=$2
-    javaversion=$3
+__GeneratePigDependencyTests_Dependency1() {
+    local pigversion=$1
+    local hadoopversion=$2
+    local javaversion=$3
 
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-hadoop-and-pig magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsoverlustre-run-testpig
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-hadoop-and-pig magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsoverlustre-run-pigscript
@@ -83,29 +60,29 @@ GeneratePigDependencyTests_Dependency1() {
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-hadoop-and-pig magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsovernetworkfs-no-copy-run-pigscript
 
     sed -i \
-	-e 's/export HADOOP_VERSION="\(.*\)"/export HADOOP_VERSION="'"${hadoopversion}"'"/' \
-	-e 's/export PIG_VERSION="\(.*\)"/export PIG_VERSION="'"${pigversion}"'"/' \
-	magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}*
+        -e 's/export HADOOP_VERSION="\(.*\)"/export HADOOP_VERSION="'"${hadoopversion}"'"/' \
+        -e 's/export PIG_VERSION="\(.*\)"/export PIG_VERSION="'"${pigversion}"'"/' \
+        magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}*
 
     sed -i \
-	-e 's/export HADOOP_FILESYSTEM_MODE="\(.*\)"/export HADOOP_FILESYSTEM_MODE="hdfsoverlustre"/' \
-	-e 's/export HADOOP_HDFSOVERLUSTRE_PATH="\(.*\)"/export HADOOP_HDFSOVERLUSTRE_PATH="'"${lustredirpathsubst}"'\/hdfsoverlustre\/DEPENDENCYPREFIX\/Pig1A\/'"${pigversion}"'"/' \
-	magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsoverlustre*
+        -e 's/export HADOOP_FILESYSTEM_MODE="\(.*\)"/export HADOOP_FILESYSTEM_MODE="hdfsoverlustre"/' \
+        -e 's/export HADOOP_HDFSOVERLUSTRE_PATH="\(.*\)"/export HADOOP_HDFSOVERLUSTRE_PATH="'"${lustredirpathsubst}"'\/hdfsoverlustre\/DEPENDENCYPREFIX\/Pig1A\/'"${pigversion}"'"/' \
+        magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsoverlustre*
     
     sed -i \
-	-e 's/export HADOOP_FILESYSTEM_MODE="\(.*\)"/export HADOOP_FILESYSTEM_MODE="hdfsovernetworkfs"/' \
-	-e 's/export HADOOP_HDFSOVERNETWORKFS_PATH="\(.*\)"/export HADOOP_HDFSOVERNETWORKFS_PATH="'"${networkfsdirpathsubst}"'\/hdfsovernetworkfs\/DEPENDENCYPREFIX\/Pig1A\/'"${pigversion}"'"/' \
-	magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsovernetworkfs*
+        -e 's/export HADOOP_FILESYSTEM_MODE="\(.*\)"/export HADOOP_FILESYSTEM_MODE="hdfsovernetworkfs"/' \
+        -e 's/export HADOOP_HDFSOVERNETWORKFS_PATH="\(.*\)"/export HADOOP_HDFSOVERNETWORKFS_PATH="'"${networkfsdirpathsubst}"'\/hdfsovernetworkfs\/DEPENDENCYPREFIX\/Pig1A\/'"${pigversion}"'"/' \
+        magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsovernetworkfs*
 
     sed -i \
-	-e 's/export MAGPIE_JOB_TYPE="\(.*\)"/export MAGPIE_JOB_TYPE="script"/' \
-	-e 's/# export MAGPIE_SCRIPT_PATH="\(.*\)"/export MAGPIE_SCRIPT_PATH="'"${magpiescriptshomesubst}"'\/testsuite\/test-pig.sh"/' \
-	magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}*run-pigscript*
+        -e 's/export MAGPIE_JOB_TYPE="\(.*\)"/export MAGPIE_JOB_TYPE="script"/' \
+        -e 's/# export MAGPIE_SCRIPT_PATH="\(.*\)"/export MAGPIE_SCRIPT_PATH="'"${magpiescriptshomesubst}"'\/testsuite\/testscripts\/test-pig.sh"/' \
+        magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}*run-pigscript*
 
     sed -i \
-	-e 's/export PIG_MODE="\(.*\)"/export PIG_MODE="script"/' \
-	-e 's/# export PIG_SCRIPT_PATH="\(.*\)"/export PIG_SCRIPT_PATH="'"${magpiescriptshomesubst}"'\/testsuite\/test-pig.pig"/' \
-	magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}*no-copy-run-pigscript*
+        -e 's/export PIG_MODE="\(.*\)"/export PIG_MODE="script"/' \
+        -e 's/# export PIG_SCRIPT_PATH="\(.*\)"/export PIG_SCRIPT_PATH="'"${magpiescriptshomesubst}"'\/testsuite\/testsuite\/test-pig.pig"/' \
+        magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}*no-copy-run-pigscript*
     
     JavaCommonSubstitution ${javaversion} `ls magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}*`
 }
@@ -118,42 +95,31 @@ GeneratePigDependencyTests() {
 
 # Dependency 1 Tests, run after another, HDFS over Lustre / NetworkFS
 
-    for pigversion in 0.12.0 0.12.1
+    for testfunction in __GeneratePigDependencyTests_Dependency1
     do
-	if [ "${hadoop_2_4_0}" != "y" ]
-	then
-	    echo "Cannot generate Pig dependency tests that depend on Hadoop 2.4.0, it's not enabled"
-	    break
-	fi
-	for hadoopversion in 2.4.0
-	do
-	    GeneratePigDependencyTests_Dependency1 ${pigversion} ${hadoopversion} "1.6"
-	done
+        for testgroup in ${pig_test_groups}
+        do
+            local hadoopversion="${testgroup}_hadoopversion"
+            local javaversion="${testgroup}_javaversion"
+            CheckForDependency "Pig" "Hadoop" ${!hadoopversion}
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!hadoopversion} ${!javaversion}
+            done
+        done
     done
+}
 
-    for pigversion in 0.13.0 0.14.0
-    do
-	if [ "${hadoop_2_6_0}" != "y" ]
-	then
-	    echo "Cannot generate Pig dependency tests that depend on Hadoop 2.6.0, it's not enabled"
-	    break
-	fi
-	for hadoopversion in 2.6.0
-	do
-	    GeneratePigDependencyTests_Dependency1 ${pigversion} ${hadoopversion} "1.6"
-	done
-    done
+GeneratePigPostProcessing () {
+    files=`find . -maxdepth 1 -name "magpie.${submissiontype}*run-testpig*"`
+    if [ -n "${files}" ]
+    then
+        sed -i -e "s/FILENAMESEARCHREPLACEKEY/run-testpig-FILENAMESEARCHREPLACEKEY/" ${files}
+    fi
 
-    for pigversion in 0.15.0
-    do
-	if [ "${hadoop_2_7_0}" != "y" ]
-	then
-	    echo "Cannot generate Pig dependency tests that depend on Hadoop 2.7.0, it's not enabled"
-	    break
-	fi
-	for hadoopversion in 2.7.0
-	do
-	    GeneratePigDependencyTests_Dependency1 ${pigversion} ${hadoopversion} "1.7"
-	done
-    done
+    files=`find . -maxdepth 1 -name "magpie.${submissiontype}*run-pigscript*"`
+    if [ -n "${files}" ]
+    then
+        sed -i -e "s/FILENAMESEARCHREPLACEKEY/run-pigscript-FILENAMESEARCHREPLACEKEY/" ${files}
+    fi
 }

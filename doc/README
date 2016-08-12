@@ -2,11 +2,11 @@ Magpie
 ------
 
 Magpie contains a number of scripts for running Big Data software in
-HPC environments.  Thus far, Hadoop, Spark,  Hbase, Storm, Pig, Mahout
-Phoenix, Kafka, Tachyon, and Zookeeper are supported.  It currently 
-supports running over the parallel file system Lustre and running over
-any generic network filesytem.  There is scheduler/resource manager
-support for Slurm, Moab, Torque, and LSF.
+HPC environments.  Thus far, Hadoop, Spark, Hbase, Storm, Pig, Mahout,
+Phoenix, Kafka, Tachyon, Zeppelin, and Zookeeper are supported.  It
+currently supports running over the parallel file system Lustre and
+running over any generic network filesytem.  There is
+scheduler/resource manager support for Slurm, Moab, Torque, and LSF.
 
 Some of the features presently supported:
 
@@ -29,7 +29,7 @@ The basic idea behind these scripts are to:
    Moab+Torque and LSF+mpirun are currently supported.
 
 2) The batch script will create configuration files for all
-   appropriate projects (Hadoop, Hbase, etc.)  The configuration files
+   appropriate projects (Hadoop, Spark, etc.)  The configuration files
    will be setup so the rank 0 node is the "master".  All compute
    nodes will have configuration files created that point to the node
    designated as the master server.
@@ -42,9 +42,8 @@ The basic idea behind these scripts are to:
    adjust these values for individual jobs.
 
 3) Launch daemons on all nodes.  The rank 0 node will run master
-   daemons, such as the Hadoop Namenode or the Hbase Master.  All
-   remaining nodes will run appropriate slave daemons, such as the
-   Hadoop Datanodes or Hbase RegionServers.
+   daemons, such as the Hadoop Namenode.  All remaining nodes will run
+   appropriate slave daemons, such as the Hadoop Datanodes.
 
 4) Now you have a mini big data cluster to do whatever you want.  You
    can log into the master node and interact with your mini big data
@@ -54,8 +53,7 @@ The basic idea behind these scripts are to:
 5) When your job completes or your allocation time has run out, Magpie
    will cleanup your job by tearing down daemons.  When appropriate,
    Magpie may also do some additional cleanup work to hopefully make
-   re-execution on later runs cleaner and faster (e.g. Hbase
-   compaction).
+   re-execution on later runs cleaner and faster.
 
 Requirements
 ------------
@@ -73,10 +71,10 @@ Requirements
    the source may also be necessary.
 
 2) A passwordless remote shell execution mechanism must be available
-   for scripts to launch big data daemons (Hadoop Datanodes, Hbase
-   Regionservers, etc.) on all appropriate nodes.  The most popular
-   (and default mechanism) is passwordless ssh.  However, other
-   mechanisms are more than suitable.
+   for scripts to launch big data daemons (e.g. Hadoop Datanodes) on
+   all appropriate nodes.  The most popular (and default mechanism) is
+   passwordless ssh.  However, other mechanisms are more than
+   suitable.
 
 3) A temporary local scratch space is needed on each node for Magpie
    to store configuration files, log files, and other miscellaneous
@@ -127,10 +125,12 @@ setting unique paths or loading specific modules before executing a
 job, this can also be configured via the LOCAL_REQUIREMENTS
 configuration in the same Makefile.
 
-Supported Package Versions
---------------------------
+Supported Packages & Versions
+-----------------------------
 
-The following packages have been tested for minimal support in Magpie.
+The following packages and their versions have been tested for minimal
+support in Magpie.
+
 Versions not listed below should work with Magpie if the
 configuration/setup of those versions is compatible with the versions
 listed below.
@@ -148,22 +148,38 @@ Spark - 0.9.1-bin-hadoop2+, 0.9.2-bin-hadoop2+, 1.0.0-bin-hadoop2^,
         1.3.1-bin-hadoop2.4+, 1.4.0-bin-hadoop2.6+,
         1.4.1-bin-hadoop2.6+, 1.5.0-bin-hadoop2.6+,
         1.5.1-bin-hadoop2.6+, 1.5.2-bin-hadoop2.6+,
-	1.6.0-bin-hadoop2.6+, 1.6.1-bin-hadoop2.6+
+        1.6.0-bin-hadoop2.6+, 1.6.1-bin-hadoop2.6+,
+        1.6.2-bin-hadoop2.6+, 2.0.0-bin-hadoop2.6+,
+        2.0.0-bin-hadoop2.7+,
 
-Hbase - 0.96.1.1-hadoop2+, 0.98.3-hadoop2+, 0.98.9-hadoop2+, 0.99.0+,
-        0.99.1+, 0.99.2+, 1.0.0+, 1.0.1+, 1.0.1.1+, 1.0.2+, 1.1.0+,
-        1.1.0.1+, 1.1.1+, 1.1.2+, 1.1.3+, 1.1.4+, 1.2.0+, 1.2.1+
+Hbase - 0.96.1.1-hadoop2+, 0.98.0-hadoop2+, 0.98.1-hadoop2+,
+        0.98.2-hadoop2+, 0.98.3-hadoop2+, 0.98.4-hadoop2+,
+        0.98.5-hadoop2+, 0.98.6-hadoop2+, 0.98.6.1-hadoop2+,
+        0.98.7-hadoop2+, 0.98.8-hadoop2+, 0.98.9-hadoop2+,
+        0.98.10-hadoop2+, 0.98.10.1-hadoop2+, 0.98.11-hadoop2+,
+        0.98.12-hadoop2+, 0.98.12.1-hadoop2+, 0.98.13-hadoop2+,
+        0.98.14-hadoop2+, 0.98.15-hadoop2+, 0.98.16-hadoop2+,
+        0.98.16.1-hadoop2+, 0.98.17-hadoop2+, 0.98.18-hadoop2+,
+        0.98.19-hadoop2+, 0.98.20-hadoop2+, 0.99.0+, 0.99.1+, 0.99.2+,
+        1.0.0+, 1.0.1+, 1.0.1.1+, 1.0.2+, 1.1.0+, 1.1.0.1+, 1.1.1+,
+        1.1.2+, 1.1.3+, 1.1.4+, 1.2.0+, 1.2.1+, 1.2.2+
 
-Storm - 0.9.2^, 0.9.3, 0.9.4, 0.9.5, 0.9.6, 0.10.0
+Pig - 0.12.0, 0.12.1, 0.13.0, 0.14.0, 0.15.0, 0.16.0 [PigNote]
 
-Pig - 0.12.0, 0.12.1, 0.13.0, 0.14.0, 0.15.0 [PigNote]
+Zookeeper - 3.4.0, 3.4.1, 3.4.2, 3.4.3, 3.4.4, 3.4.5, 3.4.6, 3.4.7,
+            3.4.8
 
-Mahout - 0.11.0+, 0.11.1+, 0.11.2+, 0.12.0+, 0.12.1+
+Storm - 0.9.2^, 0.9.3, 0.9.4, 0.9.5, 0.9.6, 0.10.0, 0.10.1, 1.0.0,
+        1.0.1
+
+Mahout - 0.11.0+, 0.11.1+, 0.11.2+, 0.12.0+, 0.12.1+, 0.12.2
+
+Phoenix - 4.5.0-Hbase-1.0+, 4.5.0-Hbase-1.1+, 4.5.1-Hbase-1.0+,
+          4.5.1-Hbase-1.1+, 4.5.2-HBase-1.0+, 4.5.2-HBase-1.1+,
+          4.6.0-Hbase-1.0+, 4.6.0-Hbase-1.1, 4.7.0-Hbase-1.0+,
+          4.7.0-Hbase-1.1
 
 UDA/uda-plugin - 3.3.2-0
-
-Phoenix - 4.5.1-Hbase-1.1+, 4.5.2-HBase-1.1+, 4.6.0-Hbase-1.1+,
-	  4.7.0-Hbase-1.1
 
 Kafka - 2.11-0.9.0.0
 
@@ -171,12 +187,9 @@ Zeppelin - 0.5.6
 
 Tachyon - 0.6.0+, 0.6.1+ [TachyonNote]
 
-Zookeeper - 3.4.0, 3.4.1, 3.4.2, 3.4.3, 3.4.4, 3.4.5, 3.4.6, 3.4.7,
-            3.4.8
-
-[PigNote] - Default Pig build for versions 0.12.0, 0.12.1, and 0.13.0
-      is Hadoop 0.20 or 1.X, so recompilation may be necessary depending on
-      your environment.
+[PigNote] - Default Pig build for versions 0.12.X is Hadoop 0.20 or
+      1.X, so recompilation may be necessary depending on your
+      environment.
 
 [TachyonNote] - Default Tachyon build is against Hadoop 1.0.4 and
       Spark may be built against non-0.6.X builds.  Recompilation of
@@ -194,11 +207,12 @@ to be a good starting point to use in running jobs.
 
 Pig 0.12.X w/ Hadoop 2.4.X 
 Pig 0.13.X, 0.14.X w/ Hadoop 2.6.X
-Pig 0.15.X w/ Hadoop 2.7.X
+Pig 0.15.X, 0.16.X w/ Hadoop 2.7.X
 
 Mahout 0.11.X w/ Hadoop 2.7.X
+Mahout 0.12.X w/ Hadoop 2.7.X
 
-Hbase 0.98.X w/ Hadoop 2.6.X, Zookeeper 3.4.X
+Hbase 0.98.X w/ Hadoop 2.2.X, Zookeeper 3.4.X
 Hbase 0.99.X, 1.0.X, 1.1.X, 1.2.X w/ Hadoop 2.7.X
 
 Phoenix 4.4.X, 4.5.X, 4.6.0 - Beginning w/ Phoenix 4.4.0, versions
@@ -207,8 +221,10 @@ Phoenix 4.4.X, 4.5.X, 4.6.0 - Beginning w/ Phoenix 4.4.0, versions
 
 Spark 0.9.X-bin-hadoop2 w/ Hadoop 2.2.X
 Spark 1.X - Beginning w/ Spark 1.0 versions prebuilt for Hadoop 2.2,
-  2.4, 2.6, etc. are available Use the version it is prebuilt for
+  2.4, 2.6, etc. are available.  Use the version it is prebuilt for
   appropriately.
+Spark 2.X - Builds against Hadoop 2.3, 2.4, 2.6, and 2.7.  Use the
+  version it is prebuilt for appropriately.
 
 Storm 0.9.X, 0.10.0 w/ Zookeeper 3.4.X 
 
@@ -221,17 +237,56 @@ Some package versions from Apache require minimum Java versions.
 Although the minimums may be lower than those listed here, these are
 our recommendations based on testing & experience.
 
-Hadoop 2.0 -> 2.6 - Java 1.6
-Hadoop 2.7 -> ... - Java 1.7
+Hadoop 2.0 -> 2.5 - Java 1.6
+Hadoop 2.6 -> ... - Java 1.7
 
 Hbase 0.98 - Java 1.6
 Hbase 0.99 -> ... - Java 1.7 
 
 Spark 0.9 -> 1.3 - Java 1.6
 Spark 1.4 -> 1.6 - Java 1.7
+Spark 2.0 -> ... - Java 1.7
 
 Storm 0.9.3 -> 0.9.4 - Java 1.6
 Storm 0.9.5 -> ... - Java 1.7
+
+Package Attention
+-----------------
+
+Not all software packages and features have been given the same level
+of attention in Magpie, so we feel it is important to inform you of
+the level of trust you can have in Magpie support for individual
+projects and/or features.
+
+Core packages/features are considered amongst the core supported
+packages in Magpie.  Magpie developers are confident in their
+functionality under a wide range of use cases and scenarios.
+
+Well supported packages/features are not given quite the same
+attention as core ones.  Magpie developers have confidence they
+will work with common use case scenarios, but non-common scenarios
+may have not been tested or tried.
+
+Experimental supported packages/features are not maintained with deep
+attention.  They may have been developed against a specific project
+version or with specific use scenario. Their support should be
+considered on the side of experimental.
+
+- Core
+
+  Packages: Hadoop, Spark, Hbase, Pig, Zookeeper
+
+- Well
+
+  Packages: Storm, Phoenix
+
+  Features: No-local-dir
+
+- Experimental
+
+  Packages: UDA/uda-plugin, Kafka, Zeppelin, Tachyon, Mahout
+
+  Features: HDFS Federation, MagpieNetworkFS, IntelLustre
 
 Documentation
 -------------
@@ -323,9 +378,6 @@ post-job-run-scripts - These are scripts that you would run after the
 actual calculation is executed.  You would set these scripts in the
 MAGPIE_POST_JOB_RUN environment variable.
 
-misc - Other miscellaneous scripts.  These may be useful outside of
-Magpie or are convenient in some other way.
-
 Notable scripts worth mentioning:
 
 pre-job-run-scripts/magpie-output-config-files-script.sh - This script
@@ -337,10 +389,10 @@ This script will get all of the conf files and log files from Hadoop,
 Hbase, Pig, Spark, Storm, and/or Zookeeper and store it in a location
 for post-analysis of your job.  It's convenient for debugging.
 
-misc/magpie-apache-download-and-setup.sh - Script will automatically
-download and patch Apache projects for you so you don't have to
-manually download them.  It'll also configure several paths for you in
-the launch scripts automatically.
+In addition, the misc/magpie-apache-download-and-setup.sh may be
+convenient for initially downloading and patching Apache projects for
+you so you don't have to manually download them.  It'll also configure
+several paths for you in the launch scripts automatically.
 
 General Advanced Usage
 ----------------------
@@ -467,6 +519,71 @@ you feel are better, etc.
 Any patches you submit to me for fixes will be appreciated.  I am by
 no means a bash expert ... in fact I'm quite bad at it.
 
+Other Projects
+--------------
+
+We welcome additions of other projects into Magpie.  Here's a somewhat
+general guide to including other projects in Magpie.  This is very
+high level.  Please see internal implementation for details.
+Hopefully it's somewhat obvious.
+
+1) Add appropriate "templates" into
+   submission-scripts/script-templates/ for the new project so the
+   project can be setup.  You can copy templates from other projects
+   to begin.  Although there can be variations depending on the
+   project's purpose, you'll most likely want to add:
+
+   magpie-XXX
+   magpie-magpie-customizations-job-XXX
+   magpie-magpie-customizations-testall-XXX
+
+   files for project XXX.
+
+   Then after that, update
+   submission-scripts/script-templates/Makefile to add your project
+   into the primary job submission files.  Generate additional
+   submission scripts for the new project if you desire to.  After
+   this you can run make and ensure your new project has been added
+   correctly into the job submission scripts.
+
+2) Add appropriate input checks to 'magpie-check-inputs'
+
+3) Add an appropriate "setup" file to magpie/setup/
+
+4) Add an appropriate "run" file to magpie/run/
+
+5) Update 'magpie-setup-projects' and 'magpie-run' appropriately for
+   new calls.
+
+6) If necessary create new directories and setup master/slave files in
+   'magpie-setup-core'
+
+7) If necessary, following libraries could warrant updates:
+
+   magpie/lib/magpie-lib-node-identification - to identify master/slave nodes
+
+   magpie/lib/magpie-lib-paths - set various path defaults
+
+   magpie/lib/magpie-lib-defaults - set various defaults
+
+8) Add any necessary patches to patches/
+
+9) Add new tests into Magpie's testsuite
+
+   - Add new test-generate-XXX.sh file to generate new tests.
+
+   - Update test-generate.sh appropriately for new test generation.
+
+   - Add new test test-submit-XXX file to submit new tests.
+
+   - Update test-validate.sh for validate jobs suceeded.
+
+   - Update test-download-projects.sh to download & patch projects if
+     necessary.
+
+10) (Optional) Add download options for the project in
+   misc/magpie-apache-download-and-setup.sh
+
 Other Schedulers/Resource Managers
 ----------------------------------
 
@@ -477,16 +594,16 @@ gladly welcome patches to support them.
 
 To support another scheduler or resource manager, you'll want to make
 your equivalent scheduler/resource manager header, similar to
-submission-scripts/script-templates/magpie-slurm.  You may also need
-to create a new job running variant, such as
+submission-scripts/script-templates/magpie-config-sbatch-srun.  You
+may also need to create a new job running variant, such as
 submission-scripts/script-templates/magpie-run-job-srun.  Then add an
 appropriate new section to
 submission-scripts/script-templates/Makefile and a new directory for
 these new submission scripts in submission-scripts.
 
 If a new MAGPIE_SUBMISSION_TYPE is needed, you'll want to update
-magpie-submission-convert and add appropriate input checks in
-magpie-check-inputs.
+magpie/exports/magpie-exports-submission-type and add appropriate
+input checks in magpie-check-inputs.
 
 I'd be glad to accept patches back for other schedulers/resource
 managers.  Please send me a pull request.

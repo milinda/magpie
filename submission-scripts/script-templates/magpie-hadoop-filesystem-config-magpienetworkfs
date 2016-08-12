@@ -1,3 +1,11 @@
+# Path for magpienetworkfs 
+#
+# This is used with HADOOP_FILESYSTEM_MODE="magpienetworkfs"
+#
+# This path must be an absolute path.
+#
+export HADOOP_MAGPIENETWORKFS_PATH="LUSTREDIRPREFIX/magpienetworkfs/"
+
 # MagpieNetworkFS Block Size
 #
 # Commonly 33554432, 67108864, 134217728 (i.e. 32m, 64m, 128m)

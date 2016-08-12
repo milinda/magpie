@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 source test-generate-common.sh
+source test-common.sh
+source test-config.sh
 
-GenerateZookeeperStandardTests_RUOK() {
-    zookeeperversion=$1
-    javaversion=$2
+__GenerateZookeeperStandardTests_RUOK() {
+    local zookeeperversion=$1
+    local javaversion=$2
 
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-storm magpie.${submissiontype}-zookeeper-${zookeeperversion}-zookeeper-networkfs-run-zookeeperruok
     cp ../submission-scripts/script-${submissiontype}/magpie.${submissiontype}-storm magpie.${submissiontype}-zookeeper-${zookeeperversion}-zookeeper-local-run-zookeeperruok
@@ -35,8 +37,36 @@ GenerateZookeeperStandardTests() {
     
     echo "Making Zookeeper Standard Tests"
 
-    for zookeeperversion in 3.4.0 3.4.1 3.4.2 3.4.3 3.4.4 3.4.5 3.4.6 3.4.7 3.4.8
+    for testfunction in __GenerateZookeeperStandardTests_RUOK
     do
-	GenerateZookeeperStandardTests_RUOK ${zookeeperversion} "1.7"
+        for testgroup in ${zookeeper_test_groups}
+        do
+            local javaversion="${testgroup}_javaversion"
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!javaversion}
+            done
+        done
     done
+}
+
+GenerateZookeeperPostProcessing () {
+
+    files=`find . -maxdepth 1 -name "magpie.${submissiontype}*run-zookeeperruok*"`
+    if [ -n "${files}" ]
+    then
+        sed -i -e "s/FILENAMESEARCHREPLACEKEY/run-zookeeperruok-FILENAMESEARCHREPLACEKEY/" ${files}
+    fi
+
+    files=`find . -maxdepth 1 -name "magpie.${submissiontype}*zookeeper-shared*"`
+    if [ -n "${files}" ]
+    then
+        sed -i -e "s/FILENAMESEARCHREPLACEKEY/zookeeper-shared-FILENAMESEARCHREPLACEKEY/" ${files}
+    fi
+
+    files=`find . -maxdepth 1 -name "magpie.${submissiontype}*" | grep -v Dependency`
+    if [ -n "${files}" ]
+    then
+        sed -i -e 's/# export ZOOKEEPER_PER_JOB_DATA_DIR="\(.*\)"/export ZOOKEEPER_PER_JOB_DATA_DIR="yes"/' ${files}
+    fi
 }

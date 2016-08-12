@@ -60,15 +60,16 @@ Instructions For Storm
 
 4) Select how your job will run by setting STORM_MODE.  The first time
    you'll probably want to run w/ 'stormwordcount' mode just to try
-   things out and make things look setup correctly.
+   things out and make sure things look setup correctly.
 
    After this, you may want to run with 'interactive' mode to play
    around and figure things out.  In the job output you will see
    output similar to the following:
 
       ssh node70
-      setenv STORM_CONF_DIR "/tmp/username/storm/ajobname/1081559/conf"
-      cd /home/username/apache-storm-0.9.3
+      setenv JAVA_HOME "/usr/lib/jvm/jre-1.7.0-oracle.x86_64/"
+      setenv STORM_HOME "/home/username/apache-storm-1.0.1"
+      setenv STORM_CONF_DIR "/tmp/username/storm/ajobname/1175007/conf"
 
    These instructions will inform you how to login to the master node
    of your allocation and how to initialize your session.  Once in

@@ -110,13 +110,20 @@ export MAGPIE_LOCAL_DIR="/tmp/${USER}/magpie"
 #                 primarily used if you want to launch without
 #                 Hadoop/Hbase/Spark/etc. and are experimenting with
 #                 things.
-
 #
 export MAGPIE_JOB_TYPE="mahout"
 
 # Specify script to execute for "script" mode in MAGPIE_JOB_TYPE
 #
 # export MAGPIE_SCRIPT_PATH="${HOME}/my-job-script"
+
+# Specify arguments for script specified in MAGPIE_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables are not
+# generated until the job has launched.  You won't be able to use them
+# here.
+#
+# export MAGPIE_SCRIPT_ARGS="" 
 
 # Specify script startup / shutdown time window
 #
@@ -164,11 +171,11 @@ export MAGPIE_JOB_TYPE="mahout"
 # magpie-example-post-job-script for ideas of what you can do w/ these
 # scripts
 #
-# A number of convenient scripts are available in the scripts
-# directory.
+# A number of convenient scripts are available in the
+# ${MAGPIE_SCRIPTS_HOME}/scripts directory.
 #
-# export MAGPIE_PRE_JOB_RUN="${HOME}/magpie-my-pre-job-script"
-# export MAGPIE_POST_JOB_RUN="${HOME}/magpie-my-post-job-script"
+# export MAGPIE_PRE_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/pre-job-run-scripts/my-pre-job-script"
+# export MAGPIE_POST_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/post-job-run-scripts/my-post-job-script"
 
 # Environment Variable Script
 #
@@ -283,9 +290,14 @@ export HADOOP_HOME="${HOME}/hadoop-${HADOOP_VERSION}"
 #
 export HADOOP_LOCAL_DIR="/tmp/${USER}/hadoop"
 
-# Directory where Hadoop configuration templates are stored
+# Directory where alternate Hadoop configuration templates are stored
 #
-# If not specified, assumed to be $MAGPIE_SCRIPTS_HOME/conf
+# If you wish to tweak the configuration files used by Magpie, set
+# HADOOP_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/hadoop into HADOOP_CONF_FILES, and modify
+# as you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/hadoop if of the files it needs are not
+# found in HADOOP_CONF_FILES.
 #
 # export HADOOP_CONF_FILES="${HOME}/myconf"
 
@@ -318,11 +330,11 @@ export HADOOP_LOCAL_DIR="/tmp/${USER}/hadoop"
 #
 # Specify extra environment information that should be passed into
 # Hadoop.  This file will simply be appended into the hadoop-env.sh
-# (and if appropriate) yarn-env.sh.
+# and (if appropriate) yarn-env.sh.
 #
 # By default, a reasonable estimate for max user processes and open
-# file descriptors will be calculated and put into hadoop-env.sh (and
-# if appropriate) yarn-env.sh.  However, it's always possible they may
+# file descriptors will be calculated and put into hadoop-env.sh and
+# (if appropriate) yarn-env.sh.  However, it's always possible they may
 # need to be set differently. Everyone's cluster/situation can be
 # slightly different.
 #
@@ -341,7 +353,7 @@ export HADOOP_LOCAL_DIR="/tmp/${USER}/hadoop"
 #              the way you like.
 #
 #              There are additional configuration options for this
-#              example listed below.
+#              listed below.
 #
 # "script" - execute a script that lists all of your Hadoop jobs.  Be
 #            sure to set HADOOP_SCRIPT_PATH to your script.
@@ -529,7 +541,7 @@ export HADOOP_MODE="launch"
 #
 # "hdfs" - Normal straight up HDFS if you have local disk in your
 #          cluster.  This option is primarily for benchmarking and
-#          probably shouldn't be used in the general case.
+#          caching, but probably shouldn't be used in the general case.
 #
 #          Be careful running this in a cluster environment.  The next
 #          time you execute your job, if a different set of nodes are
@@ -557,7 +569,22 @@ export HADOOP_MODE="launch"
 #
 export HADOOP_FILESYSTEM_MODE="hdfsoverlustre"
 
+# HDFS Replication
+#
+# This is used with HADOOP_FILESYSTEM_MODE="hdfs", "hdfsoverlustre",
+# and "hdfsovernetworkfs"
+#
+# HDFS commonly uses 3.  When doing HDFS over Lustre/NetworkFS, higher
+# replication can also help with resilience if nodes fail.  You may
+# wish to set this to < 3 to save space.
+#
+# If not specified, defaults to 3
+#
+# export HADOOP_HDFS_REPLICATION=3
+
 # Path for HDFS when using local disk
+#
+# This is used with HADOOP_FILESYSTEM_MODE="hdfs"
 #
 # If you want to specify multiple paths (such as multiple drives),
 # make them comma separated (e.g. /dir1,/dir2,/dir3).  The multiple
@@ -570,15 +597,26 @@ export HADOOP_HDFS_PATH="/ssd/${USER}/hdfs"
 # HDFS cleanup
 #
 # After your job has completed, if HADOOP_HDFS_PATH_CLEAR is set to
-# yes, Magpie will do a rm -rf on HADOOP_HDFS_PATH.  This may be
-# convenient for cleaning up your job after it has run.  This is
-# particularly useful for HDFS, b/c on your next job run, you may not
-# be able to get the nodes you want on your next run, leading to
-# problems.
+# yes, Magpie will do a rm -rf on HADOOP_HDFS_PATH.  
+#
+# This is particularly useful when doing normal HDFS on local storage.
+# On your next job run, you may not be able to get the nodes you want
+# on your next run.  So you may want to clean up your work before the
+# next user uses the node.
 #
 # export HADOOP_HDFS_PATH_CLEAR="yes"
 
+# HDFS Block Size
+#
+# Commonly 134217728, 268435456, 536870912 (i.e. 128m, 256m, 512m)
+#
+# If not specified, defaults to 134217728
+#
+# export HADOOP_HDFS_BLOCKSIZE=134217728
+
 # Lustre path to do Hadoop HDFS out of
+#
+# This is used with HADOOP_FILESYSTEM_MODE="hdfsoverlustre"
 #
 # Note that different versions of Hadoop may not be compatible with
 # your current HDFS data.  If you're going to switch around to
@@ -608,6 +646,8 @@ export HADOOP_HDFSOVERLUSTRE_PATH="/lustre/${USER}/hdfsoverlustre/"
 
 # Networkfs path to do Hadoop HDFS out of
 #
+# This is used with HADOOP_FILESYSTEM_MODE="hdfsovernetworkfs"
+#
 # Note that different versions of Hadoop may not be compatible with
 # your current HDFS data.  If you're going to switch around to
 # different versions, perhaps set different paths for different data.
@@ -636,9 +676,17 @@ export HADOOP_HDFSOVERNETWORKFS_PATH="/networkfs/${USER}/hdfsovernetworkfs/"
 
 # Path for rawnetworkfs
 #
-# This path is used for creating local per-node paths.
+# This is used with HADOOP_FILESYSTEM_MODE="rawnetworkfs"
 #
 export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
+
+# RawNetworkFS Block Size
+#
+# Commonly 33554432, 67108864, 134217728 (i.e. 32m, 64m, 128m)
+#
+# If not specified, defaults to 33554432
+#
+# export HADOOP_RAWNETWORKFS_BLOCKSIZE=33554432
 
 # If you have a local SSD or NVRAM, performance may be better to store
 # intermediate data on it rather than Lustre or some other networked
@@ -656,6 +704,16 @@ export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
 #
 # export HADOOP_LOCALSTORE="/ssd/${USER}/localstore/"
 
+# HADOOP_LOCALSTORE_CLEAR 
+#
+# After your job has completed, if HADOOP_LOCALSTORE_CLEAR is set to
+# yes, Magpie will do a rm -rf on all directories in
+# HADOOP_LOCALSTORE.  This is particularly useful if the localstore
+# directory is on local storage and you want to clean up your work
+# before the next user uses the node.
+#
+# export HADOOP_LOCALSTORE_CLEAR="yes"
+
 # Option to use unique locations per job to store hdfs data
 #
 # If this is set to yes the nodes will append the job id to the
@@ -669,33 +727,6 @@ export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
 #
 # export HADOOP_PER_JOB_HDFS_PATH="yes"
 
-# HDFS Block Size
-#
-# Commonly 134217728, 268435456, 536870912 (i.e. 128m, 256m, 512m)
-#
-# If not specified, defaults to 134217728
-#
-# export HADOOP_HDFS_BLOCKSIZE=134217728
-
-# HDFS Replication
-#
-# HDFS commonly uses 3.  When doing HDFS over Lustre/NetworkFS, higher
-# replication can also help with resilience if nodes fail.  You may
-# wish to set this to < 3 to save space.
-#
-# If not specified, defaults to 3
-#
-# export HADOOP_HDFS_REPLICATION=3
-
-# RawNetworkFS Block Size
-#
-# Commonly 33554432, 67108864, 134217728 (i.e. 32m, 64m, 128m)
-#
-# If not specified, defaults to 33554432
-#
-# export HADOOP_RAWNETWORKFS_BLOCKSIZE=33554432
-
-
 ############################################################################
 # Hadoop Script Configurations
 ############################################################################
@@ -706,6 +737,14 @@ export HADOOP_RAWNETWORKFS_PATH="/lustre/${USER}/rawnetworkfs/"
 # the script.
 #
 # export HADOOP_SCRIPT_PATH="${HOME}/my-job-script"
+
+# Specify arguments for script specified in HADOOP_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables, such as
+# HADOOP_MASTER_NODE, are not generated until the job has launched.
+# You won't be able to use them here.
+#
+# export HADOOP_SCRIPT_ARGS="" 
 
 ############################################################################
 # Hadoop Decommission HDFS Nodes Configurations
@@ -739,7 +778,7 @@ export MAHOUT_SETUP=yes
 
 # Mahout Version
 #
-export MAHOUT_VERSION="0.12.1"
+export MAHOUT_VERSION="0.12.2"
 
 # Path to your Mahout build/binaries
 #
@@ -758,11 +797,6 @@ export MAHOUT_HOME="${HOME}/apache-mahout-distribution-${MAHOUT_VERSION}"
 export MAHOUT_LOCAL_DIR="/tmp/${USER}/mahout"
 
 # Set how Mahout should run
-#
-# "classifywikipedia" - Run the Mahout classify-wikipedia.sh example.
-#                       An internet connection outside of your cluster
-#                       is required, as data will be downloaded for
-#                       the test.
 #
 # "clustersyntheticcontrol" - Run the Mahout
 #                             cluster-syntheticcontrol.sh example.  An
@@ -799,7 +833,17 @@ if [ $? -ne 0 ]
 then
     exit 1
 fi
-srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-core
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-projects
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-post
 if [ $? -ne 0 ]
 then
     exit 1

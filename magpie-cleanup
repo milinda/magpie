@@ -22,40 +22,81 @@
 #  along with Magpie.  If not, see <http://www.gnu.org/licenses/>.
 #############################################################################
 
-# This script executes post magpei run cleanup.  For the most part, it
+# This script executes post magpie run cleanup.  For the most part, it
 # shouldn't be editted.  See job submission files for configuration
 # details.
 
-source ${MAGPIE_SCRIPTS_HOME}/magpie-submission-convert
-source ${MAGPIE_SCRIPTS_HOME}/magpie-common-exports
-source ${MAGPIE_SCRIPTS_HOME}/magpie-common-functions
-source ${MAGPIE_SCRIPTS_HOME}/magpie-helper-functions
-source ${MAGPIE_SCRIPTS_HOME}/magpie-variable-conversion
-
-Magpie_make_all_local_dirs_node_specific
+source ${MAGPIE_SCRIPTS_HOME}/magpie/lib/magpie-lib-node-identification
 
 myhostname=`hostname`
-	    
+            
 if [ "${HADOOP_FILESYSTEM_MODE}" == "hdfs" ] \
     && [ "${HADOOP_HDFS_PATH_CLEAR}" == "yes" ]
 then
-    IFSORIG=${IFS}
-    IFS=","
-    for hdfspath in ${HADOOP_HDFS_PATH}
-    do
-	if [ -d "${hdfspath}" ]
-	then
-	    echo "${myhostname}: Clearing directory ${hdfspath}"
-	    rm -rf ${hdfspath}
-	fi
-    done
-    IFS=${IFSORIG}
+    if Magpie_am_I_a_hadoop_node
+    then
+        IFSORIG=${IFS}
+        IFS=","
+        for hdfspath in ${HADOOP_HDFS_PATH}
+        do
+            if [ -d "${hdfspath}" ]
+            then
+                echo "${myhostname}: Clearing directory ${hdfspath}"
+                rm -rf ${hdfspath}
+            fi
+        done
+        IFS=${IFSORIG}
+    fi
+fi
+
+if [ "${HADOOP_LOCALSTORE}X" != "X" ] \
+    && [ "${HADOOP_LOCALSTORE_CLEAR}" == "yes" ]
+then
+    if Magpie_am_I_a_hadoop_node
+    then
+        IFSORIG=${IFS}
+        IFS=","
+        for localstorepath in ${HADOOP_LOCALSTORE}
+        do
+            if [ -d "${localstorepath}" ]
+            then
+                echo "${myhostname}: Clearing directory ${localstorepath}"
+                rm -rf ${localstorepath}
+            fi
+        done
+        IFS=${IFSORIG}
+    fi
+fi
+
+if [ "${SPARK_LOCAL_SCRATCH_DIR}X" != "X" ] \
+    && [ "${SPARK_LOCAL_SCRATCH_DIR_CLEAR}" == "yes" ]
+then
+    # sparknoderank set if succeed
+    if Magpie_am_I_a_spark_node
+    then
+        IFSORIG=${IFS}
+        IFS=","
+        for localscratchpath in ${SPARK_LOCAL_SCRATCH_DIR}
+        do
+            localscratchpathtmp="${localscratchpath}/node-${sparknoderank}"
+
+            if [ -d "${localscratchpathtmp}" ]
+            then
+                echo "${myhostname}: Clearing directory ${localscratchpathtmp}"
+                rm -rf ${localscratchpathtmp}
+            fi
+        done
+        IFS=${IFSORIG}
+    fi
 fi
 
 if [ "${ZOOKEEPER_DATA_DIR_CLEAR}" == "yes" ]
 then
-    echo "${myhostname}: Clearing directory ${ZOOKEEPER_DATA_DIR}"
-    rm -rf ${ZOOKEEPER_DATA_DIR}
+    if Magpie_am_I_a_zookeeper_node
+    then
+        echo "${myhostname}: Clearing directory ${ZOOKEEPER_DATA_DIR}"
+        rm -rf ${ZOOKEEPER_DATA_DIR}
+    fi
 fi
 
 exit 0

@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
+source test-submit-cornercase.sh
 source test-submit-default.sh
+source test-submit-functionality.sh
 source test-submit-hadoop.sh
 source test-submit-hbase.sh
 source test-submit-kafka.sh
@@ -10,21 +12,29 @@ source test-submit-pig.sh
 source test-submit-spark.sh
 source test-submit-storm.sh
 source test-submit-zookeeper.sh
+source test-config.sh
 
 # How to submit
 
 # XXX - haven't handled msub-torque-pdsh yet
 
-#submissiontype=lsf-mpirun
-#submissiontype=msub-slurm-srun
-#submissiontype=msub-torque-pdsh 
-submissiontype=sbatch-srun
-
 verboseoutput=n
-
-# Misc config
-
 jobsubmissionfile=magpie-test.log
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+    case $key in
+        -v|--verbose)
+            verboseoutput=y
+            ;;
+        *)
+            echo "Usage: test-validate [-v]"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 # Test Setup
 
@@ -60,21 +70,21 @@ BasicJobSubmit () {
 
     if [ -f "${jobsubmissionscript}" ]
     then
-	jobsubmitoutput=$(eval "${jobsubmitcmd} ${jobsubmitcmdoption} ${jobsubmissionscript}")
-	jobidstripfullcommand="echo '${jobsubmitoutput}' | ${jobidstripcmd}"
-	jobid=$(eval ${jobidstripfullcommand})
-	
-	echo "File ${jobsubmissionscript} submitted with ID ${jobid}" >> ${jobsubmissionfile}
-	
-	previousjobid=${jobid}
-	jobsubmitdependencyexpand=$(eval echo ${jobsubmitdependency})
-	previousjobsubmitted=y
+        jobsubmitoutput=`eval "${jobsubmitcmd} ${jobsubmitcmdoption} ${jobsubmissionscript}"`
+        jobidstripfullcommand="echo '${jobsubmitoutput}' | ${jobidstripcmd}"
+        jobid=`eval ${jobidstripfullcommand}`
+        
+        echo "File ${jobsubmissionscript} submitted with ID ${jobid}" >> ${jobsubmissionfile}
+        
+        previousjobid=${jobid}
+        jobsubmitdependencyexpand=`eval echo ${jobsubmitdependency}`
+        previousjobsubmitted=y
     else
-	if [ "${verboseoutput}" = "y" ]
-	then
-	    echo "File ${jobsubmissionscript} not found" >> ${jobsubmissionfile}
-	fi
-	previousjobsubmitted=n
+        if [ "${verboseoutput}" = "y" ]
+        then
+            echo "File ${jobsubmissionscript} not found" >> ${jobsubmissionfile}
+        fi
+        previousjobsubmitted=n
     fi
 }
 
@@ -83,45 +93,47 @@ DependentJobSubmit () {
 
     if [ "${previousjobsubmitted}" == "y" ]
     then
-	if [ -f "${jobsubmissionscript}" ]
-	then
-	    jobsubmitoutput=$(eval "${jobsubmitcmd} ${jobsubmitdependencyexpand} ${jobsubmitcmdoption} ${jobsubmissionscript}")
-	    jobidstripfullcommand="echo '${jobsubmitoutput}' | ${jobidstripcmd}"
-	    jobid=$(eval ${jobidstripfullcommand})
-	    
-	    echo "File ${jobsubmissionscript} submitted with ID ${jobid}, dependent on previous job ${previousjobid}" >> ${jobsubmissionfile}
-	    
-	    previousjobid=${jobid}
-	    jobsubmitdependencyexpand=$(eval echo ${jobsubmitdependency})
-	    previousjobsubmitted=y
-	else
-	    if [ "${verboseoutput}" = "y" ]
-	    then
-		echo "File ${jobsubmissionscript} not found" >> ${jobsubmissionfile}
-	    fi
-	    previousjobsubmitted=n
-	fi
+        if [ -f "${jobsubmissionscript}" ]
+        then
+            jobsubmitoutput=`eval "${jobsubmitcmd} ${jobsubmitdependencyexpand} ${jobsubmitcmdoption} ${jobsubmissionscript}"`
+            jobidstripfullcommand="echo '${jobsubmitoutput}' | ${jobidstripcmd}"
+            jobid=`eval ${jobidstripfullcommand}`
+            
+            echo "File ${jobsubmissionscript} submitted with ID ${jobid}, dependent on previous job ${previousjobid}" >> ${jobsubmissionfile}
+            
+            previousjobid=${jobid}
+            jobsubmitdependencyexpand=`eval echo ${jobsubmitdependency}`
+            previousjobsubmitted=y
+        else
+            if [ "${verboseoutput}" = "y" ]
+            then
+                echo "File ${jobsubmissionscript} not found" >> ${jobsubmissionfile}
+            fi
+            previousjobsubmitted=n
+        fi
     else
-	if [ -f "${jobsubmissionscript}" ]
-	then
-	    if [ "${verboseoutput}" = "y" ]
-	    then
-		echo "File ${jobsubmissionscript} not submitted - prior job in dependency chain not submitted" >> ${jobsubmissionfile}
-	    fi
-	    previousjobsubmitted=n
-	else
-	    if [ "${verboseoutput}" = "y" ]
-	    then
-		echo "File ${jobsubmissionscript} not found" >> ${jobsubmissionfile}
-	    fi
-	    previousjobsubmitted=n
-	fi
+        if [ -f "${jobsubmissionscript}" ]
+        then
+            if [ "${verboseoutput}" = "y" ]
+            then
+                echo "File ${jobsubmissionscript} not submitted - prior job in dependency chain not submitted" >> ${jobsubmissionfile}
+            fi
+            previousjobsubmitted=n
+        else
+            if [ "${verboseoutput}" = "y" ]
+            then
+                echo "File ${jobsubmissionscript} not found" >> ${jobsubmissionfile}
+            fi
+            previousjobsubmitted=n
+        fi
     fi
 }
 
 SubmitDefaultStandardTests
-# SubmitDefaultDependencyTests
-SubmitDefaultRegressionTests
+
+SubmitCornerCaseTests
+
+SubmitFunctionalityTests
 
 SubmitHadoopStandardTests
 SubmitHadoopDependencyTests
@@ -148,4 +160,3 @@ SubmitKafkaStandardTests
 SubmitKafkaDependencyTests
 
 SubmitZookeeperStandardTests
-# SubmitZookeeperDependencyTests

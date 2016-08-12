@@ -1,8 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-SubmitKafkaStandardTests_KafkaPerformance() {
-    kafkaversion=$1
-    zookeeperversion=$2
+source test-common.sh
+source test-config.sh
+
+__SubmitKafkaStandardTests_KafkaPerformance() {
+    local kafkaversion=$1
+    local zookeeperversion=$2
 
     BasicJobSubmit magpie.${submissiontype}-kafka-${kafkaversion}-zookeeper-${zookeeperversion}-zookeeper-not-shared-zookeeper-networkfs-run-kafkaperformance
     BasicJobSubmit magpie.${submissiontype}-kafka-${kafkaversion}-zookeeper-${zookeeperversion}-zookeeper-not-shared-zookeeper-local-run-kafkaperformance
@@ -16,29 +19,37 @@ SubmitKafkaStandardTests_KafkaPerformance() {
 }
 
 SubmitKafkaStandardTests() {
-    for kafkaversion in 2.11-0.9.0.0
+    for testfunction in __SubmitKafkaStandardTests_KafkaPerformance
     do
-	for zookeeperversion in 3.4.8
-	do
-	    SubmitKafkaStandardTests_KafkaPerformance ${kafkaversion} ${zookeeperversion}
-	done
+        for testgroup in ${kafka_test_groups}
+        do
+            local zookeeperversion="${testgroup}_zookeeperversion"
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!zookeeperversion}
+            done
+        done
     done
 }
 
-SubmitKafkaDependencyTests_Dependency1() {
-    kafkaversion=$1
-    zookeeperversion=$2
+__SubmitKafkaDependencyTests_Dependency1() {
+    local kafkaversion=$1
+    local zookeeperversion=$2
 
     BasicJobSubmit magpie.${submissiontype}-kafka-DependencyKafka1A-kafka-${kafkaversion}-zookeeper-${zookeeperversion}-run-kafkaperformance
     DependentJobSubmit magpie.${submissiontype}-kafka-DependencyKafka1A-kafka-${kafkaversion}-zookeeper-${zookeeperversion}-run-kafkaperformance
 }
 
 SubmitKafkaDependencyTests() {
-    for kafkaversion in 2.11-0.9.0.0
+    for testfunction in __SubmitKafkaDependencyTests_Dependency1
     do
-	for zookeeperversion in 3.4.8
-	do
-	    SubmitKafkaDependencyTests_Dependency1 ${kafkaversion} ${zookeeperversion}
-	done
+        for testgroup in ${kafka_test_groups}
+        do
+            local zookeeperversion="${testgroup}_zookeeperversion"
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!zookeeperversion}
+            done
+        done
     done
 }

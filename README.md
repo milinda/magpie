@@ -3,10 +3,10 @@ Magpie
 
 Magpie contains a number of scripts for running Big Data software in
 HPC environments.  Thus far, Hadoop, Spark, Hbase, Storm, Pig, Mahout,
-Phoenix, Kafka, Tachyon, and Zookeeper are supported.  It currently
-supports running over the parallel file system Lustre and running over
-any generic network filesytem.  There is scheduler/resource manager
-support for Slurm, Moab, Torque, and LSF.
+Phoenix, Kafka, Tachyon, Zeppelin, and Zookeeper are supported.  It
+currently supports running over the parallel file system Lustre and
+running over any generic network filesytem.  There is
+scheduler/resource manager support for Slurm, Moab, Torque, and LSF.
 
 Some of the features presently supported:
 
@@ -29,7 +29,7 @@ The basic idea behind these scripts are to:
    Moab+Torque and LSF+mpirun are currently supported.
 
 2) The batch script will create configuration files for all
-   appropriate projects (Hadoop, Hbase, etc.)  The configuration files
+   appropriate projects (Hadoop, Spark, etc.)  The configuration files
    will be setup so the rank 0 node is the "master".  All compute
    nodes will have configuration files created that point to the node
    designated as the master server.
@@ -42,9 +42,8 @@ The basic idea behind these scripts are to:
    adjust these values for individual jobs.
 
 3) Launch daemons on all nodes.  The rank 0 node will run master
-   daemons, such as the Hadoop Namenode or the Hbase Master.  All
-   remaining nodes will run appropriate slave daemons, such as the
-   Hadoop Datanodes or Hbase RegionServers.
+   daemons, such as the Hadoop Namenode.  All remaining nodes will run
+   appropriate slave daemons, such as the Hadoop Datanodes.
 
 4) Now you have a mini big data cluster to do whatever you want.  You
    can log into the master node and interact with your mini big data
@@ -54,13 +53,14 @@ The basic idea behind these scripts are to:
 5) When your job completes or your allocation time has run out, Magpie
    will cleanup your job by tearing down daemons.  When appropriate,
    Magpie may also do some additional cleanup work to hopefully make
-   re-execution on later runs cleaner and faster (e.g. Hbase
-   compaction).
+   re-execution on later runs cleaner and faster.
 
-Supported Package Versions
---------------------------
+Supported Packages & Versions
+-----------------------------
 
-The following packages have been tested for minimal support in Magpie.
+The following packages and their versions have been tested for minimal
+support in Magpie.  Please see full README for additional details.
+
 Versions not listed below should work with Magpie if the
 configuration/setup of those versions is compatible with the versions
 listed below.
@@ -78,22 +78,38 @@ Spark - 0.9.1-bin-hadoop2+, 0.9.2-bin-hadoop2+, 1.0.0-bin-hadoop2^,
         1.3.1-bin-hadoop2.4+, 1.4.0-bin-hadoop2.6+,
         1.4.1-bin-hadoop2.6+, 1.5.0-bin-hadoop2.6+,
         1.5.1-bin-hadoop2.6+, 1.5.2-bin-hadoop2.6+,
-	1.6.0-bin-hadoop2.6+, 1.6.1-bin-hadoop2.6+
+        1.6.0-bin-hadoop2.6+, 1.6.1-bin-hadoop2.6+,
+        1.6.2-bin-hadoop2.6+, 2.0.0-bin-hadoop2.6+,
+        2.0.0-bin-hadoop2.7+,
 
-Hbase - 0.96.1.1-hadoop2+, 0.98.3-hadoop2+, 0.98.9-hadoop2+, 0.99.0+,
-        0.99.1+, 0.99.2+, 1.0.0+, 1.0.1+, 1.0.1.1+, 1.0.2+, 1.1.0+,
-        1.1.0.1+, 1.1.1+, 1.1.2+, 1.1.3+, 1.1.4+, 1.2.0+, 1.2.1+
+Hbase - 0.96.1.1-hadoop2+, 0.98.0-hadoop2+, 0.98.1-hadoop2+,
+        0.98.2-hadoop2+, 0.98.3-hadoop2+, 0.98.4-hadoop2+,
+        0.98.5-hadoop2+, 0.98.6-hadoop2+, 0.98.6.1-hadoop2+,
+        0.98.7-hadoop2+, 0.98.8-hadoop2+, 0.98.9-hadoop2+,
+        0.98.10-hadoop2+, 0.98.10.1-hadoop2+, 0.98.11-hadoop2+,
+        0.98.12-hadoop2+, 0.98.12.1-hadoop2+, 0.98.13-hadoop2+,
+        0.98.14-hadoop2+, 0.98.15-hadoop2+, 0.98.16-hadoop2+,
+        0.98.16.1-hadoop2+, 0.98.17-hadoop2+, 0.98.18-hadoop2+,
+        0.98.19-hadoop2+, 0.98.20-hadoop2+, 0.99.0+, 0.99.1+, 0.99.2+,
+        1.0.0+, 1.0.1+, 1.0.1.1+, 1.0.2+, 1.1.0+, 1.1.0.1+, 1.1.1+,
+        1.1.2+, 1.1.3+, 1.1.4+, 1.2.0+, 1.2.1+, 1.2.2+
 
-Storm - 0.9.2^, 0.9.3, 0.9.4, 0.9.5, 0.9.6, 0.10.0
+Pig - 0.12.0, 0.12.1, 0.13.0, 0.14.0, 0.15.0, 0.16.0 [PigNote]
 
-Pig - 0.12.0, 0.12.1, 0.13.0, 0.14.0, 0.15.0 [PigNote]
+Zookeeper - 3.4.0, 3.4.1, 3.4.2, 3.4.3, 3.4.4, 3.4.5, 3.4.6, 3.4.7,
+            3.4.8
 
-Mahout - 0.11.0+, 0.11.1+, 0.11.2+, 0.12.0+, 0.12.1+
+Storm - 0.9.2^, 0.9.3, 0.9.4, 0.9.5, 0.9.6, 0.10.0, 0.10.1, 1.0.0,
+        1.0.1
+
+Mahout - 0.11.0+, 0.11.1+, 0.11.2+, 0.12.0+, 0.12.1+, 0.12.2
+
+Phoenix - 4.5.0-Hbase-1.0+, 4.5.0-Hbase-1.1+, 4.5.1-Hbase-1.0+,
+          4.5.1-Hbase-1.1+, 4.5.2-HBase-1.0+, 4.5.2-HBase-1.1+,
+          4.6.0-Hbase-1.0+, 4.6.0-Hbase-1.1, 4.7.0-Hbase-1.0+,
+          4.7.0-Hbase-1.1
 
 UDA/uda-plugin - 3.3.2-0
-
-Phoenix - 4.5.1-Hbase-1.1+, 4.5.2-HBase-1.1+, 4.6.0-Hbase-1.1+,
-          4.7.0-Hbase-1.1
 
 Kafka - 2.11-0.9.0.0
 
@@ -101,12 +117,9 @@ Zeppelin - 0.5.6
 
 Tachyon - 0.6.0+, 0.6.1+ [TachyonNote]
 
-Zookeeper - 3.4.0, 3.4.1, 3.4.2, 3.4.3, 3.4.4, 3.4.5, 3.4.6, 3.4.7,
-            3.4.8
-
-[PigNote] - Default Pig build for versions 0.12.0, 0.12.1, and 0.13.0
-      is Hadoop 0.20 or 1.X, so recompilation may be necessary depending on
-      your environment.
+[PigNote] - Default Pig build for versions 0.12.X is Hadoop 0.20 or
+      1.X, so recompilation may be necessary depending on your
+      environment.
 
 [TachyonNote] - Default Tachyon build is against Hadoop 1.0.4 and
       Spark may be built against non-0.6.X builds.  Recompilation of

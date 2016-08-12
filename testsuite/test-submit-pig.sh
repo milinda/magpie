@@ -1,8 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-SubmitPigStandardTests_Common() {
-    pigversion=$1
-    hadoopversion=$2
+source test-common.sh
+source test-config.sh
+
+__SubmitPigStandardTests_Common() {
+    local pigversion=$1
+    local hadoopversion=$2
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}-run-testpig
     BasicJobSubmit magpie.${submissiontype}-hadoop-and-pig-hadoop-${hadoopversion}-pig-${pigversion}-run-pigscript
@@ -12,34 +15,22 @@ SubmitPigStandardTests_Common() {
 }
 
 SubmitPigStandardTests() {
-    for pigversion in 0.12.0 0.12.1
+    for testfunction in __SubmitPigStandardTests_Common
     do
-	for hadoopversion in 2.4.0
-	do
-	    SubmitPigStandardTests_Common ${pigversion} ${hadoopversion}
-	done
-    done
-    
-    for pigversion in 0.13.0 0.14.0
-    do
-	for hadoopversion in 2.6.0
-	do
-	    SubmitPigStandardTests_Common ${pigversion} ${hadoopversion}
-	done
-    done
-    
-    for pigversion in 0.15.0
-    do
-	for hadoopversion in 2.7.0
-	do
-	    SubmitPigStandardTests_Common ${pigversion} ${hadoopversion}
-	done
+        for testgroup in ${pig_test_groups}
+        do
+            local hadoopversion="${testgroup}_hadoopversion"
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!hadoopversion}
+            done
+        done
     done
 }
 
-SubmitPigDependencyTests_Dependency1() {
-    pigversion=$1
-    hadoopversion=$2
+__SubmitPigDependencyTests_Dependency1() {
+    local pigversion=$1
+    local hadoopversion=$2
 
     BasicJobSubmit magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsoverlustre-run-testpig
     DependentJobSubmit magpie.${submissiontype}-hadoop-and-pig-DependencyPig1A-hadoop-${hadoopversion}-pig-${pigversion}-hdfsoverlustre-run-testpig
@@ -53,27 +44,15 @@ SubmitPigDependencyTests_Dependency1() {
 }
 
 SubmitPigDependencyTests() {
-    for pigversion in 0.12.0 0.12.1
+    for testfunction in __SubmitPigDependencyTests_Dependency1
     do
-	for hadoopversion in 2.4.0
-	do
-	    SubmitPigDependencyTests_Dependency1 ${pigversion} ${hadoopversion}
-	done
-    done
-
-    for pigversion in 0.13.0 0.14.0
-    do
-	for hadoopversion in 2.6.0
-	do
-	    SubmitPigDependencyTests_Dependency1 ${pigversion} ${hadoopversion}
-	done
-    done
-
-    for pigversion in 0.15.0
-    do
-	for hadoopversion in 2.7.0
-	do
-	    SubmitPigDependencyTests_Dependency1 ${pigversion} ${hadoopversion}
-	done
+        for testgroup in ${pig_test_groups}
+        do
+            local hadoopversion="${testgroup}_hadoopversion"
+            for testversion in ${!testgroup}
+            do
+                ${testfunction} ${testversion} ${!hadoopversion}
+            done
+        done
     done
 }
