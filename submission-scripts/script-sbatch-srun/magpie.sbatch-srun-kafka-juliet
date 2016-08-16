@@ -69,6 +69,11 @@ export MAGPIE_SUBMISSION_TYPE="sbatchsrun"
 # Magpie Configurations
 ############################################################################
 
+# Directory for storing system statistics from sar
+#
+# Normally an NFS mount, someplace magpie can be reached on all nodes.
+export MAGPIE_SYSSTAT_HOME="${HOME}/jobstats"
+
 # Directory your launching scripts/files are stored
 #
 # Normally an NFS mount, someplace magpie can be reached on all nodes.
