@@ -38,11 +38,11 @@
 # for example HDFS federation.
 
 #SBATCH --nodes=4
-#SBATCH --output="/N/u/${USER}/slurm/slurm-%j.out"
-
+#SBATCH --output="slurm-%j.out"
+#SBATCH --error="slurm-err-%j.out"
 # Note defaults of MAGPIE_STARTUP_TIME & MAGPIE_SHUTDOWN_TIME, this
 # timelimit should be a fair amount larger than them combined.
-#SBATCH --time=1430
+#SBATCH --time=1455
 
 # Job name.  This will be used in naming directories for the job.
 #SBATCH --job-name=kafka-cluster
@@ -56,6 +56,10 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --exclusive
 #SBATCH --no-kill
+
+# Notifications
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=mpathira@indiana.edu
 
 # Need to tell Magpie how you are submitting this job
 export MAGPIE_SUBMISSION_TYPE="sbatchsrun"
@@ -75,7 +79,7 @@ export MAGPIE_SCRIPTS_HOME="${HOME}/Workspace/magpie"
 # job.  If local scratch space is not available, consider using the
 # MAGPIE_NO_LOCAL_DIR option.  See README for more details.
 #
-export MAGPIE_LOCAL_DIR="/scratch/${USER}/magpie"
+export MAGPIE_LOCAL_DIR="/tmp/${USER}/magpie"
 
 # Magpie job type
 #
@@ -1808,7 +1812,7 @@ export KAFKA_MODE="server"
 # The approximate throughput to throttle messages at for the performance test
 # (in messages/sec) Note: -1 does not throttle
 #
-# export KAFKA_PERFORMANCE_THROUGHPUT=-1
+export KAFKA_PERFORMANCE_THROUGHPUT=100000
 
 ############################################################################
 # Zeppelin Configurations
