@@ -41,3 +41,7 @@ Magpie_output_internal_warning () {
 Magpie_output_internal_error () {
     __Magpie_output_internal_message "Error" $@
 }
+
+Magpie_output_info () {
+	__Magpie_output_internal_message "Info" $@
+}
