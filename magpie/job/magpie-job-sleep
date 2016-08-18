@@ -55,11 +55,8 @@ sleeptype=$1
 if [ "${sleeptype}" == "normal" ]
 then
     HOST_NAME=`hostname`
-    Magpie_output_info "Generating sar logs in ${HOST_NAME}."
-    mkdir -p "${MAGPIE_SYSSTAT_HOME}/${SLURM_JOB_ID}"
-    num_reports=`echo "${secondsleft} 10" | awk '{print $1/$2}'`
-    sar -o "${MAGPIE_SYSSTAT_HOME}/${SLURM_JOB_ID}/${HOST_NAME}.log" -B 10 ${num_reports} 2>&1 >/dev/null
-    #sleep ${secondsleft}
+    Magpie_output_info "Sleeping ${secondsleft} seconds in ${HOST_NAME}."
+    sleep ${secondsleft}
 else
 # 3600 = 60 mins
     if [ "${secondsleft}" -gt 3600 ]
