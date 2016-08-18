@@ -200,8 +200,8 @@ export MAGPIE_JOB_TYPE="kafka"
 # A number of convenient scripts are available in the
 # ${MAGPIE_SCRIPTS_HOME}/scripts directory.
 #
-# export MAGPIE_PRE_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/pre-job-run-scripts/my-pre-job-script"
-# export MAGPIE_POST_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/post-job-run-scripts/my-post-job-script"
+export MAGPIE_PRE_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/pre-job-run-scripts/magpie-start-sar-script.sh"
+export MAGPIE_POST_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/post-job-run-scripts/magpie-stop-sar-script.sh"
 
 # Environment Variable Script
 #
@@ -252,6 +252,24 @@ export MAGPIE_JOB_TYPE="kafka"
 #
 # export MAGPIE_REMOTE_CMD="ssh"
 export MAGPIE_REMOTE_CMD_OPTS="-o StrictHostKeyChecking=no"
+
+
+############################################################################
+# SAR Configuration
+############################################################################
+
+# sar commandline options to configure what system activities to record
+export SAR_CMD_OPTS="-A"
+
+# sar activity recording interval
+export SAR_RECORD_INTERVAL=5
+
+# sar log directory local to node
+export SAR_LOCAL_DIR="/scratch/${USER}/sar"
+
+# directory collect sar logs from all nodes in a job
+export SAR_SHARED_DIR="${HOME}/sar"
+
 
 ############################################################################
 # General Configuration
@@ -1784,7 +1802,7 @@ export KAFKA_CONF_FILES="${HOME}/Workspace/magpie-conf"
 # "setuponly" - Like 'server' but only setup conf files. useful
 #               if user wants to setup & teardown daemons themselves.
 #
-export KAFKA_MODE="server"
+export KAFKA_MODE="performance"
 
 # Set the Zookeeper connection timeout for Kafka
 #
