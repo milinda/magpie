@@ -35,7 +35,7 @@ Magpie_start_sar () {
 	mkdir -p "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}"
 	local HOST=`hostname`
 	echo "Starting sar on ${HOST}"
-	nohup sar -A -o ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log ${SAR_RECORD_INTERVAL} & echo $! > ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
+	nohup sar -A -o ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log ${SAR_RECORD_INTERVAL} > /dev/null 2>&1 & echo $! > ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
 
 	local NOW=$(date +"%T")
 	local SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid)
