@@ -9,8 +9,6 @@ nohup sar -A -o ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log ${SAR_RECORD_INTERV
 NOW=$(date +"%T")
 SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
 
-sleep 5
-
 if ps -p $SAR_PID > /dev/null
 then
    echo "sar process ${SAR_PID} is running on ${HOST}"
