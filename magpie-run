@@ -31,6 +31,7 @@ source ${MAGPIE_SCRIPTS_HOME}/magpie/exports/magpie-exports-dirs
 source ${MAGPIE_SCRIPTS_HOME}/magpie/exports/magpie-exports-user
 source ${MAGPIE_SCRIPTS_HOME}/magpie/lib/magpie-lib-node-identification
 source ${MAGPIE_SCRIPTS_HOME}/magpie/lib/magpie-lib-run
+source ${MAGPIE_SCRIPTS_HOME}/magpie/lib/magpie-lib-sar
 
 source ${MAGPIE_SCRIPTS_HOME}/magpie/run/magpie-run-project-hadoop
 source ${MAGPIE_SCRIPTS_HOME}/magpie/run/magpie-run-project-hbase
@@ -143,6 +144,9 @@ Magpie_run_start_storm
 # Will set magpie_run_tachyon_should_be_torndown & magpie_run_tachyon_setup_successful appropriately
 Magpie_run_start_tachyon
 
+# After startup of all the services start sar
+Magpie_start_sar
+
 # Make sure all setup passed
 if [ "${magpie_run_zookeeper_setup_successful}" == "1" ] \
     && [ "${magpie_run_hadoop_setup_successful}" == "1" ] \
@@ -213,6 +217,9 @@ then
         Magpie_wait_script_sigusr2_on_job_timeout ${scriptpid}
     fi
 fi
+
+# Kill sar and move logs to shared directory after we are done with actual job
+Magpie_stop_sar
 
 # Tachyon before Hadoop shutdown, may need to flush
 # Sets magpie_run_tachyon_teardown_complete if teardown done
