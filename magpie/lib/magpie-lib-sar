@@ -38,7 +38,7 @@ Magpie_start_sar () {
 	nohup sar -A -o ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log ${SAR_RECORD_INTERVAL} & echo $! > ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
 
 	local NOW=$(date +"%T")
-	local SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
+	local SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid)
 
 	if ps -p $SAR_PID > /dev/null
 	then
@@ -51,7 +51,7 @@ Magpie_start_sar () {
 Magpie_stop_sar () {
 	local HOST=`hostname`
 	echo "Stopping sar on ${HOST}"
-	local SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
+	local SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid)
 
 	if ps -p $SAR_PID > /dev/null
 	then
