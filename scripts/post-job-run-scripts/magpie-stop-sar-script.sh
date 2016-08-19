@@ -4,6 +4,13 @@
 
 HOST=`hostname`
 
+SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
+
+if ps -p $SAR_PID > /dev/null
+then
+   echo "sar process ${SAR_PID} is running on ${HOST}"
+fi
+
 # Killing sar process
 kill $(cat "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid")
 
