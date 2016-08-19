@@ -261,7 +261,7 @@ export MAGPIE_REMOTE_CMD_OPTS="-o StrictHostKeyChecking=no"
 ############################################################################
 # SAR Configuration
 ############################################################################
-
+export SAR_SETUP=yes
 # sar commandline options to configure what system activities to record
 export SAR_CMD_OPTS="-A"
 
