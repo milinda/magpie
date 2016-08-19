@@ -1,0 +1,83 @@
+#!/bin/bash
+#############################################################################
+#  Copyright (C) 2016 Milinda Pathirage
+#  Written by Milinda Pathirage <milinda.pathirage@gmail.com>
+#  
+#  This file is part of Magpie, scripts for running Hadoop on
+#  traditional HPC systems.  For details, see https://github.com/llnl/magpie.
+#  
+#  Magpie is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#  
+#  Magpie is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with Magpie.  If not, see <http://www.gnu.org/licenses/>.
+#############################################################################
+
+# This is used by scripts, don't edit this
+#
+# This file has functions related to collecting system statistics using sar.  
+# Should be sourced and used only in magpie-run* files.
+
+source ${MAGPIE_SCRIPTS_HOME}/magpie/exports/magpie-exports-submission-type
+source ${MAGPIE_SCRIPTS_HOME}/magpie/exports/magpie-exports-dirs
+source ${MAGPIE_SCRIPTS_HOME}/magpie/lib/magpie-lib-calculate-values
+source ${MAGPIE_SCRIPTS_HOME}/magpie/lib/magpie-lib-log
+source ${MAGPIE_SCRIPTS_HOME}/magpie/lib/magpie-lib-helper
+
+Magpie_start_sar () {
+	mkdir -p "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}"
+	local HOST=`hostname`
+	echo "Starting sar on ${HOST}"
+	nohup sar -A -o ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log ${SAR_RECORD_INTERVAL} & echo $! > ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
+
+	local NOW=$(date +"%T")
+	local SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
+
+	if ps -p $SAR_PID > /dev/null
+	then
+   	echo "sar process ${SAR_PID} is running on ${HOST}"
+	fi
+
+	echo "Started sar process (PID: ${SAR_PID})  on ${HOST} at ${NOW}"
+}
+
+Magpie_stop_sar () {
+	local HOST=`hostname`
+	echo "Stopping sar on ${HOST}"
+	local SAR_PID=$(cat ${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid
+
+	if ps -p $SAR_PID > /dev/null
+	then
+  	echo "sar process ${SAR_PID} is running on ${HOST}"
+	fi
+
+	# Killing sar process
+	kill $(cat "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid")
+
+	# Create job directory in shared file system
+	mkdir -p "${SAR_SHARED_DIR}/${SLURM_JOB_ID}"
+
+	# Copy kafka master and server host list
+	if [ "${KAFKA_SETUP}" == "yes" ]; then
+		if [ ! -f "${SAR_SHARED_DIR}/${SLURM_JOB_ID}/masters" ]; then
+    	cp  "${KAFKA_CONF_DIR}/masters" "${SAR_SHARED_DIR}/${SLURM_JOB_ID}/masters"
+		fi
+
+		if [ ! -f "${SAR_SHARED_DIR}/${SLURM_JOB_ID}/slaves" ]; then
+    	cp  "${KAFKA_CONF_DIR}/slaves" "${SAR_SHARED_DIR}/${SLURM_JOB_ID}/slaves"
+		fi
+	fi
+
+	# Copying sar log back to shared filesystem
+	cp "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log" "${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${HOST}.log"
+
+	NOW=$(date +"%T")
+	echo "Killed sar and transfer logs to shared directory on ${HOST} at ${NOW}"
+}
