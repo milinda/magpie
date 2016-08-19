@@ -37,7 +37,10 @@ Magpie_start_sar_remote () {
 		for node in `cat ${MAGPIE_LOCAL_CONF_DIR}/sar_nodes`
 		do
     	mkdir -p ${SAR_SHARED_DIR}/${SLURM_JOB_ID}
-    	${RSH_CMD} ${MAGPIE_REMOTE_CMD_OPTS} ${node} "nohup sar -A -o ${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${node}.log ${SAR_RECORD_INTERVAL} > /dev/null 2>&1 & echo $! > ${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${node}.pid"
+    	${RSH_CMD} ${MAGPIE_REMOTE_CMD_OPTS} ${node} << EOF
+    		nohup sar -A -o ${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${node}.log ${SAR_RECORD_INTERVAL} > /dev/null 2>&1 & 
+    		echo $! > ${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${node}.pid
+    	EOF
 		done
 	fi
 }
@@ -47,7 +50,9 @@ Magpie_stop_sar_remote () {
 	then
 		for node in `cat ${MAGPIE_LOCAL_CONF_DIR}/sar_nodes`
 		do
-    	${RSH_CMD} ${MAGPIE_REMOTE_CMD_OPTS} ${node} "kill -9 $(cat ${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${node}.pid)"
+    	${RSH_CMD} ${MAGPIE_REMOTE_CMD_OPTS} ${node} << EOF
+    		kill -9 $(cat ${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${node}.pid)
+    	EOF
 		done	
 	fi
 }
