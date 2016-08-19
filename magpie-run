@@ -145,7 +145,7 @@ Magpie_run_start_storm
 Magpie_run_start_tachyon
 
 # After startup of all the services start sar
-Magpie_start_sar
+Magpie_start_sar_remote
 
 # Make sure all setup passed
 if [ "${magpie_run_zookeeper_setup_successful}" == "1" ] \
@@ -219,7 +219,7 @@ then
 fi
 
 # Kill sar and move logs to shared directory after we are done with actual job
-Magpie_stop_sar
+Magpie_stop_sar_remote
 
 # Tachyon before Hadoop shutdown, may need to flush
 # Sets magpie_run_tachyon_teardown_complete if teardown done
