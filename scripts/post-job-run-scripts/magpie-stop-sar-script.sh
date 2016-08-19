@@ -24,3 +24,5 @@ fi
 # Copying sar log back to shared filesystem
 cp "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log" "${SAR_SHARED_DIR}/${SLURM_JOB_ID}/${HOST}.log"
 
+NOW=$(date +"%T")
+echo "Killed sar and transfer logs to shared directory on ${HOST} at ${NOW}"

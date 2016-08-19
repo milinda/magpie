@@ -5,3 +5,6 @@
 mkdir -p "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}"
 HOST=`hostname`
 nohup sar -A -o "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.log" ${SAR_RECORD_INTERVAL} > /dev/null 2>&1 & echo $! > "${SAR_LOCAL_DIR}/${SLURM_JOB_ID}/${HOST}.pid"
+
+NOW=$(date +"%T")
+echo "Started sar on ${HOST} at ${NOW}"
