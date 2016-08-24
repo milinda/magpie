@@ -1,0 +1,486 @@
+#!/bin/sh
+#############################################################################
+#  Copyright (C) 2013-2015 Lawrence Livermore National Security, LLC.
+#  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
+#  Written by Albert Chu <chu11@llnl.gov>
+#  LLNL-CODE-644248
+#
+#  This file is part of Magpie, scripts for running Hadoop on
+#  traditional HPC systems.  For details, see https://github.com/llnl/magpie.
+#
+#  Magpie is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  Magpie is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with Magpie.  If not, see <http://www.gnu.org/licenses/>.
+#############################################################################
+
+############################################################################
+# SLURM Customizations
+############################################################################
+
+# Node count.  Node count should include one node for the
+# head/management/master node.  For example, if you want 8 compute
+# nodes to process data, specify 9 nodes below.
+#
+# If including Zookeeper, include expected Zookeeper nodes.  For
+# example, if you want 8 Hadoop compute nodes and 3 Zookeeper nodes,
+# specify 12 nodes (1 master, 8 Hadoop, 3 Zookeeper)
+#
+# Also take into account additional nodes needed for other services,
+# for example HDFS federation.
+
+#SBATCH --nodes=4
+#SBATCH --output="/N/u/${USER}/slurm/slurm-%j.out"
+
+# Note defaults of MAGPIE_STARTUP_TIME & MAGPIE_SHUTDOWN_TIME, this
+# timelimit should be a fair amount larger than them combined.
+#SBATCH --time=1430
+
+# Job name.  This will be used in naming directories for the job.
+#SBATCH --job-name=kafka-cluster
+
+# Partition to launch job in
+#SBATCH --partition=general
+
+## SLURM Values
+# Generally speaking, don't touch these, just need to configure slurm
+
+#SBATCH --ntasks-per-node=1
+#SBATCH --exclusive
+#SBATCH --no-kill
+
+# Need to tell Magpie how you are submitting this job
+export MAGPIE_SUBMISSION_TYPE="sbatchsrun"
+
+
+############################################################################
+# Magpie Configurations
+############################################################################
+
+# Directory your launching scripts/files are stored
+#
+# Normally an NFS mount, someplace magpie can be reached on all nodes.
+export MAGPIE_SCRIPTS_HOME="${HOME}/Workspace/magpie"
+
+# Path to store data local to each cluster node, typically something
+# in /tmp.  This will store local conf files and log files for your
+# job.  If local scratch space is not available, consider using the
+# MAGPIE_NO_LOCAL_DIR option.  See README for more details.
+#
+export MAGPIE_LOCAL_DIR="/scratch/${USER}/magpie"
+
+# Magpie job type
+
+export MAGPIE_JOB_TYPE="kafka"
+
+# Specify script to execute for "script" mode in MAGPIE_JOB_TYPE
+#
+# export MAGPIE_SCRIPT_PATH="${HOME}/my-job-script"
+
+# Specify arguments for script specified in MAGPIE_SCRIPT_PATH
+#
+# Note that many Magpie generated environment variables are not
+# generated until the job has launched.  You won't be able to use them
+# here.
+#
+# export MAGPIE_SCRIPT_ARGS="" 
+
+# Specify script startup / shutdown time window
+#
+# Specifies the amount of time to give startup / shutdown activities a
+# chance to succeed before Magpie will give up (or in the case of
+# shutdown, when the resource manager/scheduler may kill the running
+# job).  Defaults to 30 minutes for startup, 30 minutes for shutdown.
+#
+# The startup time in particular may need to be increased if you have
+# a large amount of data.  As an example, HDFS may need to spend a
+# significant amount of time determine all of the blocks in HDFS
+# before leaving safemode.
+#
+# The stop time in particular may need to be increased if you have a
+# large amount of cleanup to be done.  HDFS will save its NameSpace
+# before shutting down.  Hbase will do a compaction before shutting
+# down.
+#
+# The startup & shutdown window must together be smaller than the
+# SBATCH_TIMELIMIT specified above.
+#
+# MAGPIE_STARTUP_TIME and MAGPIE_SHUTDOWN_TIME at minimum must be 5
+# minutes.  If MAGPIE_POST_JOB_RUN is specified below,
+# MAGPIE_SHUTDOWN_TIME must be at minimum 10 minutes.
+#
+# export MAGPIE_STARTUP_TIME=30
+# export MAGPIE_SHUTDOWN_TIME=30
+
+# Convenience Scripts
+#
+# Specify script to be executed to before / after your job.  It is run
+# on all nodes.
+#
+# Typically the pre-job script is used to set something up or get
+# debugging info.  It can also be used to determine if system
+# conditions meet the expectations of your job.  The primary job
+# running script (magpie-run) will not be executed if the
+# MAGPIE_PRE_JOB_RUN exits with a non-zero exit code.
+#
+# The post-job script is typically used for cleaning up something or
+# gathering info (such as logs) for post-debugging/analysis.  If it is
+# set, MAGPIE_SHUTDOWN_TIME above must be > 5.
+#
+# See example magpie-example-pre-job-script and
+# magpie-example-post-job-script for ideas of what you can do w/ these
+# scripts
+#
+# A number of convenient scripts are available in the
+# ${MAGPIE_SCRIPTS_HOME}/scripts directory.
+#
+# export MAGPIE_PRE_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/pre-job-run-scripts/magpie-start-sar-script.sh"
+# export MAGPIE_POST_JOB_RUN="${MAGPIE_SCRIPTS_HOME}/scripts/post-job-run-scripts/magpie-stop-sar-script.sh"
+
+# Environment Variable Script
+#
+# When working with Magpie interactively by logging into the master
+# node of your job allocation, many environment variables may need to
+# be set.  For example, environment variables for config file
+# directories (e.g. HADOOP_CONF_DIR, HBASE_CONF_DIR, etc.) and home
+# directories (e.g. HADOOP_HOME, HBASE_HOME, etc.) and more general
+# environment variables (e.g. JAVA_HOME) may need to be set before you
+# begin interacting with your big data setup.
+#
+# The standard job output from Magpie provides instructions on all the
+# environment variables typically needed to interact with your job.
+# However, this can be tedious if done by hand.
+#
+# If the environment variable specified below is set, Magpie will
+# create the file and put into it every environment variable that
+# would be useful when running your job interactively.  That way, it
+# can be sourced easily if you will be running your job interactively.
+# It can also be loaded or used by other job scripts.
+#
+# export MAGPIE_ENVIRONMENT_VARIABLE_SCRIPT="${HOME}/my-job-env"
+
+# Environment Variable Shell Type
+#
+# Magpie outputs environment variables in help output and
+# MAGPIE_ENVIRONMENT_VARIABLE_SCRIPT based on your SHELL environment
+# variable.
+#
+# If you would like to output in a different shell type (perhaps you
+# have programmed scripts in a different shell), specify that shell
+# here.
+#
+# export MAGPIE_ENVIRONMENT_VARIABLE_SCRIPT_SHELL="/bin/bash"
+
+# Remote Shell
+#
+# Magpie requires a passwordless remote shell command to launch
+# necessary daemons across your job allocation.  Magpie defaults to
+# ssh, but it may be an alternate command in some environments.  An
+# alternate ssh-equivalent remote command can be specified by setting
+# MAGPIE_REMOTE_CMD below.
+#
+# If using ssh, Magpie requires keys to be setup ahead of time so it
+# can be executed without passwords.
+#
+# Specify options to the remote shell command if necessary.
+#
+# export MAGPIE_REMOTE_CMD="ssh"
+export MAGPIE_REMOTE_CMD_OPTS="-o StrictHostKeyChecking=no"
+
+
+############################################################################
+# SAR Configuration
+############################################################################
+export SAR_SETUP=yes
+# sar commandline options to configure what system activities to record
+export SAR_CMD_OPTS="-A"
+
+# sar activity recording interval
+export SAR_RECORD_INTERVAL=5
+
+# sar log directory local to node
+export SAR_LOCAL_DIR="/scratch/${USER}/sar"
+
+# directory collect sar logs from all nodes in a job
+export SAR_SHARED_DIR="${HOME}/sar"
+
+
+############################################################################
+# General Configuration
+############################################################################
+
+# Necessary for most projects
+export JAVA_HOME="/opt/jdk1.8.0_60/"
+
+# MAGPIE_PYTHON path used for:
+# - Spark PySpark path
+export MAGPIE_PYTHON="/usr/bin/python"
+
+############################################################################
+# Kafka Configurations
+############################################################################
+
+# Should Kafka be setup
+#
+# Specify yes or no.  Defaults to no.
+#
+# If KAFKA_SETUP is enabled, this will inform Magpie to setup a
+# configuration files and environment variables that will hopefully
+# make it easier to run Kafka w/ HBase.  You could leave this disabled
+# and setup/config Kafka as you need.
+#
+export KAFKA_SETUP=yes
+
+# Kafka Version
+#
+export KAFKA_VERSION="2.11-0.9.0.1"
+
+# Path to your Kafka build/binaries
+#
+# This should be accessible on all nodes in your allocation. Typically
+# this is in an NFS mount.
+#
+export KAFKA_HOME="${HOME}/kafka_${KAFKA_VERSION}"
+
+# Path to store data local to each cluster node, typically something
+# in /tmp.  This will store local conf files and log files for your
+# job.  If local scratch space is not available, consider using the
+# MAGPIE_NO_LOCAL_DIR_DIR option.  See README for more details.
+#
+export KAFKA_LOCAL_DIR="/scratch/${USER}/kafka-logs"
+
+# Directory where alternate Kafka configuration templates are stored
+#
+# If you wish to tweak the configuration files used by Magpie, set
+# KAFKA_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/kafka into KAFKA_CONF_FILES, and modify as
+# you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/kafka if of the files it needs are not
+# found in KAFKA_CONF_FILES.
+#
+export KAFKA_CONF_FILES="${HOME}/Workspace/magpie-conf"
+
+# Set how Kafka should run
+#
+# "performance" - run performance test. Useful for making sure things are
+#                 setup and running properly
+#
+# "server" - setup the server
+#
+# "setuponly" - Like 'server' but only setup conf files. useful
+#               if user wants to setup & teardown daemons themselves.
+#
+export KAFKA_MODE="performance"
+
+# Set the Zookeeper connection timeout for Kafka
+#
+# Defaults to 30000
+#
+# export KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT=30000
+
+############################################################################
+# Kafka Performance Configuration
+############################################################################
+
+# Performance Record Count
+#
+# Number of records to run performance test with
+#
+# export KAFKA_PERFORMANCE_RECORD_COUNT=50000000
+
+# Performance Record Size
+#
+# The size of each record in bytes to run performance test with
+#
+# export KAFKA_PERFORMANCE_RECORD_SIZE=100
+
+# Performance Throughput
+#
+# The approximate throughput to throttle messages at for the performance test
+# (in messages/sec) Note: -1 does not throttle
+#
+# export KAFKA_PERFORMANCE_THROUGHPUT=-1
+
+############################################################################
+# Zookeeper Configurations
+############################################################################
+
+# Should Zookeeper be run
+#
+# Specify yes or no.  Defaults to no.
+#
+export ZOOKEEPER_SETUP=yes
+
+# Zookeeper Replication Count
+#
+# Recommended to be odd.
+#
+export ZOOKEEPER_REPLICATION_COUNT=1
+
+# Zookeeper Node Sharing
+#
+# By default, Zookeeper will not run on nodes that will run Hadoop/Hbase.
+# They will have dedicated nodes for themselves.  If you do not wish
+# for this to be the case, set the below to 'yes'.  Defaults to no.
+#
+# Keep in mind that adjustments to the number of nodes in your
+# allocation may need to be adjusted given your setting of this
+# parameter.  For example, if you want 8 nodes for Hadoop processing,
+# you should increase your allocation by ZOOKEEPER_REPLICATION_COUNT
+# if the below is 'no'.
+#
+# export ZOOKEEPER_SHARE_NODES=yes
+
+# Set how Zookeeper should run
+#
+# "zookeeperruok" - Run a quick sanity test to see that zookeeper is
+#             setup correctly.  zookeeperruok will do a simple 'ruok'
+#             to all Zookeeper daemons.
+#
+# "launch" - Magpie will launch Zookeeper daemons
+#
+# "setuponly" - Like 'launch' but only setup conf files. useful
+#               if user wants to setup & teardown daemons themselves.
+#
+export ZOOKEEPER_MODE="launch"
+
+# Zookeeper Version
+#
+export ZOOKEEPER_VERSION="3.4.8"
+
+# Path to your Zookeeper build/binaries
+#
+# This should be accessible on all nodes in your allocation. Typically
+# this is in an NFS mount.
+#
+export ZOOKEEPER_HOME="${HOME}/zookeeper-${ZOOKEEPER_VERSION}"
+
+# Directory where alternate Zookeeper configuration templates are stored
+#
+# If you wish to tweak the configuration files used by Magpie, set
+# ZOOKEEPER_CONF_FILES below, copy configuration templates from
+# $MAGPIE_SCRIPTS_HOME/conf/zookeeper into ZOOKEEPER_CONF_FILES, and
+# modify as you desire.  Magpie will still use configuration files in
+# $MAGPIE_SCRIPTS_HOME/conf/zookeeper if of the files it needs are not
+# found in ZOOKEEPER_CONF_FILES.
+#
+# export ZOOKEEPER_CONF_FILES="${HOME}/myconf"
+
+# Path base for zookeeper data to be stored on each cluster node
+#
+# ZOOKEEPER_DATA_DIR can point to either a network file system path or
+# a local drive path.
+#
+# If a local drive or SSD/NVRAM is available, a local path is
+# preferable.  If set to local, please see ZOOKEEPER_DATA_DIR_TYPE
+# below for optimization possibilties.
+#
+export ZOOKEEPER_DATA_DIR="/scratch/${USER}/zookeeper"
+
+# Zookeeper cleanup
+#
+# After your job has completed, if ZOOKEEPER_DATA_DIR_CLEAR is set to
+# yes, Magpie will do a rm -rf on ZOOKEEPER_DATA_DIR.  This may be
+# convenient for cleaning up your job after it has run.  This is
+# particularly useful if ZOOKEEPER_DATA_DIR is on a local ssd /drive.
+# B/c on your next job run, you may not be able to get the nodes you
+# want on your next run, leading to problems.
+#
+export ZOOKEEPER_DATA_DIR_CLEAR="yes"
+
+# Zookeeper data dir type
+#
+# Inform Magpie what type of directory ZOOKEEPER_DATA_DIR points to.
+#
+# This configuration isn't entirely necessary to be set, but if set to
+# networkfs, Magpie will increase a number of default timeouts in
+# Zookeeper as well as other projects to adjust for the fact Zookeeper
+# is running on a network file system.
+#
+# "networkfs" - ZOOKEEPER_DATA_DIR points to a network filesystem
+#               (such as Lustre).
+#
+# "local" - ZOOKEEPER_DATA_DIR points to a local drive.
+#
+export ZOOKEEPER_DATA_DIR_TYPE="local"
+
+# Path to store data local to each cluster node, typically something
+# in /tmp.  This will store local conf files and log files for your
+# job.  If local scratch space is not available, consider using the
+# MAGPIE_NO_LOCAL_DIR_DIR option.  See README for more details.
+#
+export ZOOKEEPER_LOCAL_DIR="/scratch/${USER}/zookeeper"
+
+# Option to have per job data dir
+#
+# For each batch job, if this is set to yes, the location where
+# zookeeper stores its data dir will be unique per job. The data
+# dir will have the job id appended to the path to keep them organized.
+# It will allows for multiple instances of the same script to be run
+# without having collisions due to different nodes being used.
+#
+export ZOOKEEPER_PER_JOB_DATA_DIR="yes"
+
+# ZooKeeper ticktime, measured in milliseconds.  Used by all of
+# Zookeeper for time measurement.
+#
+# Defaults to 2000.
+#
+# export ZOOKEEPER_TICKTIME=2000
+
+# ZooKeeper initLimit, multiple of ticks to allow followers to connect
+# and sync to a leader.  May need to increase this value if the data
+# managed by ZooKeeper is large.
+#
+# Defaults to 10 if ZOOKEEPER_DATA_DIR_TYPE is local, 20 if networkfs
+#
+# export ZOOKEEPER_INITLIMIT=10
+
+# ZooKeeper syncLimit, multiple of ticks to allow followers to sync
+# with ZooKeeper.  If they fall too far behind a leader, they will be
+# dropped.
+#
+# Defaults to 5 if ZOOKEEPER_DATA_DIR_TYPE is local, 10 if networkfs
+#
+# export ZOOKEEPER_SYNCLIMIT=5
+
+############################################################################
+# Run Job
+############################################################################
+
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-check-inputs
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-core
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-projects
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-setup-post
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-pre-run
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-run
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-cleanup
+srun --no-kill -W 0 $MAGPIE_SCRIPTS_HOME/magpie-post-run
