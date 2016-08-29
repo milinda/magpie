@@ -38,7 +38,8 @@
 # for example HDFS federation.
 
 #SBATCH --nodes=4
-#SBATCH --output="/N/u/${USER}/slurm/slurm-%j.out"
+#SBATCH --output="slurm-hadoop-%j.out"
+#SBATCH --error="slurm-hadoop-%j.err"
 
 # Note defaults of MAGPIE_STARTUP_TIME & MAGPIE_SHUTDOWN_TIME, this
 # timelimit should be a fair amount larger than them combined.
@@ -56,6 +57,9 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --exclusive
 #SBATCH --no-kill
+
+#SBATCH --mail-user=mpathira@indiana.edu
+#SBATCH --mail-type=ALL
 
 # Need to tell Magpie how you are submitting this job
 export MAGPIE_SUBMISSION_TYPE="sbatchsrun"
@@ -218,6 +222,23 @@ export MAGPIE_JOB_TYPE="hadoop"
 #
 # export MAGPIE_REMOTE_CMD="ssh"
 # export MAGPIE_REMOTE_CMD_OPTS=""
+
+############################################################################
+# SAR Configuration
+############################################################################
+export SAR_SETUP=yes
+# sar commandline options to configure what system activities to record
+export SAR_CMD_OPTS="-A"
+
+# sar activity recording interval
+export SAR_RECORD_INTERVAL=5
+
+# sar log directory local to node
+export SAR_LOCAL_DIR="/scratch/${USER}/sar"
+
+# directory collect sar logs from all nodes in a job
+export SAR_SHARED_DIR="${HOME}/sar"
+
 
 ############################################################################
 # General Configuration

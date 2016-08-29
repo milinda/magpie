@@ -38,7 +38,8 @@
 # for example HDFS federation.
 
 #SBATCH --nodes=4
-#SBATCH --output="/N/u/${USER}/slurm/slurm-%j.out"
+#SBATCH --output="slurm-kafka-%j.out"
+#SBATCH --error="slurm-kafka-%j.err"
 
 # Note defaults of MAGPIE_STARTUP_TIME & MAGPIE_SHUTDOWN_TIME, this
 # timelimit should be a fair amount larger than them combined.
@@ -56,6 +57,9 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --exclusive
 #SBATCH --no-kill
+
+#SBATCH --mail-user=mpathira@indiana.edu
+#SBATCH --mail-type=ALL
 
 # Need to tell Magpie how you are submitting this job
 export MAGPIE_SUBMISSION_TYPE="sbatchsrun"
